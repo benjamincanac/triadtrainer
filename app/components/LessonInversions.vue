@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { chordLabel, inversions, keyName, toPitchClass, type Chord } from '~/composables/useTheory'
+
+const props = defineProps<{ chord: Chord }>()
+const emit = defineEmits<{ play: [notes: number[]] }>()
+
+const COPY = {
+  root: 'Root position — the root is at the bottom and the chord is stacked in thirds.',
+  first: 'First inversion — the root jumps up an octave, the third takes the bass.',
+  second: 'Second inversion — the fifth is at the bottom, the root sits in the middle.'
+} as const
+
+const voicings = computed(() =>
+  inversions(props.chord, 60).map(inversion => ({
+    ...inversion,
+    blurb: COPY[inversion.name],
+    names: inversion.notes.map(note => keyName(toPitchClass(note)))
+  }))
+)
+</script>
+
+<template>
+  <section class="flex flex-col gap-4">
+    <header class="flex flex-col gap-1">
+      <h2 class="font-serif text-2xl italic text-ivory">
+        The three inversions
+      </h2>
+      <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+        Same three notes, three stacking orders. The drill accepts all of them, because
+        {{ chordLabel(chord) }} is a set of pitch classes, not a fingering.
+      </p>
+    </header>
+
+    <div class="flex flex-col gap-3">
+      <article
+        v-for="voicing in voicings"
+        :key="voicing.name"
+        class="grid gap-3 rounded-lg border border-etch bg-panel p-4 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] sm:items-center"
+      >
+        <div class="flex flex-col gap-1">
+          <div class="flex items-baseline gap-2">
+            <h3 class="font-mono text-xs text-ivory capitalize">
+              {{ voicing.name }}
+            </h3>
+            <span class="font-mono text-[10px] text-legend">
+              {{ voicing.bass }} in bass
+            </span>
+          </div>
+          <p class="font-mono text-[11px] text-lamp">
+            {{ voicing.names.join(' ') }}
+          </p>
+          <p class="font-sans text-[11px] leading-relaxed text-legend">
+            {{ voicing.blurb }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="cursor-pointer rounded"
+          :aria-label="`Play ${chordLabel(chord)} in ${voicing.name} position`"
+          @click="emit('play', voicing.notes)"
+        >
+          <!-- 28 semitones from C4 reaches MIDI 87, the top note of the highest
+               second inversion (B major), so no voicing runs off the end. -->
+          <MiniKeyboard
+            :notes="voicing.notes"
+            :roots="[60 + chord.root, 72 + chord.root]"
+            :semitones="28"
+            :labels="false"
+            height="h-16"
+          />
+        </button>
+      </article>
+    </div>
+  </section>
+</template>

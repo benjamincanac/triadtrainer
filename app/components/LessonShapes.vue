@@ -1,0 +1,116 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import {
+  chordLabel,
+  chordPitchClasses,
+  keyName,
+  ROOT_NAMES,
+  rootsInFamily,
+  SHAPE_FAMILIES,
+  triad,
+  type Quality,
+  type ShapeFamily
+} from '~/composables/useTheory'
+
+const props = defineProps<{ quality: Quality }>()
+const emit = defineEmits<{ play: [notes: number[]] }>()
+
+const COPY: Record<ShapeFamily, { title: string, blurb: string }> = {
+  WWW: {
+    title: 'Three whites',
+    blurb: 'Root, third and fifth all land on white keys. The hand sits flat.'
+  },
+  WBW: {
+    title: 'White black white',
+    blurb: 'Only the middle finger lifts onto a black key.'
+  },
+  BWB: {
+    title: 'Black white black',
+    blurb: 'The outer fingers ride the black keys, the thumb-side note stays down.'
+  },
+  irregular: {
+    title: 'The three odd ones',
+    blurb: 'No shared shape. These are the three worth drilling on their own.'
+  }
+}
+
+const families = computed(() =>
+  SHAPE_FAMILIES.map(family => {
+    const roots = rootsInFamily(family, props.quality)
+    const example = roots[0]!
+    return {
+      family,
+      ...COPY[family],
+      roots,
+      // Chord roots, so they follow the chord spelling (Db), not the key cap (C#).
+      rootNames: roots.map(root => ROOT_NAMES[root]),
+      example: { root: example, quality: props.quality },
+      exampleNotes: triad(example, props.quality),
+      exampleNames: chordPitchClasses({ root: example, quality: props.quality }).map(keyName)
+    }
+  })
+)
+
+/** Sound the example an octave above middle C. */
+function play(root: number) {
+  const intervals = props.quality === 'major' ? [0, 4, 7] : [0, 3, 7]
+  emit('play', intervals.map(interval => 60 + root + interval))
+}
+</script>
+
+<template>
+  <section class="flex flex-col gap-4">
+    <header class="flex flex-col gap-1">
+      <h2 class="font-serif text-2xl italic text-ivory">
+        Four hand shapes
+      </h2>
+      <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+        Nine of the twelve {{ quality }} triads are the same gesture moved around the keyboard.
+        Learn the four groups instead of twelve chords. Tap a diagram to hear it.
+      </p>
+    </header>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <article
+        v-for="group in families"
+        :key="group.family"
+        class="flex flex-col gap-3 rounded-lg border border-etch bg-panel p-4"
+      >
+        <div class="flex items-baseline justify-between gap-2">
+          <h3 class="font-mono text-xs tracking-wide text-ivory">
+            {{ group.title }}
+          </h3>
+          <span class="font-mono text-[10px] text-lamp">
+            {{ group.rootNames.join(' · ') }}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="cursor-pointer rounded"
+          :aria-label="`Play ${chordLabel(group.example)}`"
+          @click="play(group.example.root)"
+        >
+          <!-- Exactly one octave, so the root lights once and the shape reads
+               as a single hand position. -->
+          <MiniKeyboard
+            :notes="group.exampleNotes"
+            :roots="[group.example.root]"
+            :semitones="12"
+            by-pitch-class
+            :labels="false"
+            height="h-14"
+          />
+        </button>
+
+        <p class="font-sans text-[11px] leading-relaxed text-legend">
+          {{ group.blurb }}
+        </p>
+
+        <p class="font-mono text-[10px] text-legend/70">
+          e.g. {{ chordLabel(group.example) }} = {{ group.exampleNames.join(' ') }}
+        </p>
+      </article>
+    </div>
+  </section>
+</template>
