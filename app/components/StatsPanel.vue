@@ -19,16 +19,16 @@ const readouts = computed(() => [
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-etch bg-etch sm:grid-cols-4">
+  <div class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-default bg-accented sm:grid-cols-4">
     <div
       v-for="readout in readouts"
       :key="readout.label"
-      class="flex flex-col gap-1.5 bg-panel px-3 py-3"
+      class="flex flex-col gap-1.5 bg-elevated px-3 py-3"
     >
-      <span class="font-mono text-[10px] tracking-[0.18em] text-legend uppercase">
+      <span class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
         {{ readout.label }}
       </span>
-      <span class="tabular font-mono text-xl leading-none text-ivory">
+      <span class="font-mono tabular-nums text-xl leading-none text-highlighted">
         {{ readout.value }}
       </span>
     </div>

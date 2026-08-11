@@ -1,18 +1,36 @@
-import tailwindcss from '@tailwindcss/vite'
-
 // Web MIDI is gated by the `midi` permission policy. It defaults to `self`,
 // which is what we want — do NOT add a Permissions-Policy header here, in a
 // vercel.json, or in nitro.routeRules. Anything more restrictive silently kills
 // navigator.requestMIDIAccess() in production and the app falls back to clicks.
 export default defineNuxtConfig({
-  modules: ['@nuxt/eslint', '@nuxt/fonts', 'shadcn-nuxt'],
+  // @nuxt/ui registers the Tailwind Vite plugin and @nuxt/fonts itself, so
+  // neither needs its own entry here.
+  modules: ['@nuxt/eslint', '@nuxt/ui'],
 
   devtools: { enabled: false },
 
+  ui: {
+    // The app is dark-only and sets `class="dark"` in app.head, so the
+    // colour-mode module has nothing to switch.
+    colorMode: false,
+
+    theme: {
+      // Only `primary` is used. The default also generates secondary, success,
+      // info, warning and error, none of which this app references. `neutral`
+      // is always present and isn't listed here.
+      colors: ['primary']
+    },
+
+    experimental: {
+      // Emit CSS only for the handful of components actually used.
+      componentDetection: true
+    }
+  },
+
   app: {
     head: {
-      // `dark` is permanent: shadcn-vue components style themselves through
-      // `dark:` variants and the app has no light mode.
+      // `dark` is permanent: the app is a piece of gear, not a document, and
+      // has no light mode.
       htmlAttrs: { lang: 'en', class: 'dark' },
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
@@ -39,14 +57,5 @@ export default defineNuxtConfig({
     ]
   },
 
-  compatibilityDate: 'latest',
-
-  vite: {
-    plugins: [tailwindcss()]
-  },
-
-  shadcn: {
-    prefix: '',
-    componentDir: './app/components/ui'
-  }
+  compatibilityDate: 'latest'
 })

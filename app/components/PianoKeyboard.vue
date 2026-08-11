@@ -31,7 +31,7 @@ function keyProps(note: number) {
 
 <template>
   <div
-    class="relative w-full rounded-lg border border-etch bg-ebony/60 p-2 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(237,230,214,0.05)] sm:p-3"
+    class="relative w-full rounded-lg border border-default bg-ebony/60 p-2 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(237,230,214,0.05)] sm:p-3"
   >
     <!-- felt strip along the top, like the one on a real key bed -->
     <div class="mb-2 h-1 w-full rounded-full bg-linear-to-r from-bad/25 via-bad/40 to-bad/25" />

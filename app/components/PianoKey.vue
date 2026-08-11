@@ -42,7 +42,7 @@ const lampClass = computed(() => {
     class="group flex h-full w-full cursor-pointer flex-col justify-end select-none focus-visible:z-20"
     :class="black
       ? 'rounded-b-[3px] border border-t-0 border-black/80 bg-linear-to-b from-[#221d17] to-ebony shadow-[0_3px_5px_rgba(0,0,0,0.6)] active:from-ebony active:to-[#1a150f]'
-      : 'rounded-b-md border border-t-0 border-etch/70 bg-linear-to-b from-ivory to-[#dcd2be] shadow-[inset_0_-6px_10px_-8px_rgba(0,0,0,0.5)] active:from-[#dcd2be] active:to-[#cec3ac]'"
+      : 'rounded-b-md border border-t-0 border-default bg-linear-to-b from-ivory to-[#dcd2be] shadow-[inset_0_-6px_10px_-8px_rgba(0,0,0,0.5)] active:from-[#dcd2be] active:to-[#cec3ac]'"
     @pointerdown.prevent="$emit('press', midiNote)"
     @keydown.enter.prevent="$emit('press', midiNote)"
     @keydown.space.prevent.stop="$emit('press', midiNote)"

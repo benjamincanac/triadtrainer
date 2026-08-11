@@ -39,19 +39,19 @@ const relative = computed<Chord>(() =>
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+    <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
       The triad is degrees 1, 3 and 5 of its scale. Seeing where the chord sits in the
       seven notes is what makes it findable without counting semitones.
     </p>
 
-    <div class="flex flex-col gap-3 rounded-lg border border-etch bg-panel p-3">
+    <div class="flex flex-col gap-3 rounded-lg border border-default bg-elevated p-3">
       <div class="flex items-baseline justify-between gap-2">
-        <h3 class="font-mono text-xs text-ivory">
+        <h3 class="font-mono text-xs text-highlighted">
           {{ noteName(chord.root, settings.accidentals) }} {{ chord.quality }} scale
         </h3>
         <button
           type="button"
-          class="cursor-pointer font-mono text-[10px] text-lamp underline-offset-4 hover:underline"
+          class="cursor-pointer font-mono text-[10px] text-primary underline-offset-4 hover:underline"
           @click="emit('play', notes)"
         >
           play ascending
@@ -68,25 +68,25 @@ const relative = computed<Chord>(() =>
         @press="emit('play', [$event])"
       />
 
-      <ol class="flex flex-wrap gap-px overflow-hidden rounded border border-etch">
+      <ol class="flex flex-wrap gap-px overflow-hidden rounded border border-default">
         <li
           v-for="step in degrees"
           :key="step.degree"
           class="flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2"
-          :class="step.inChord ? 'bg-lamp/15' : 'bg-panel-raised'"
+          :class="step.inChord ? 'bg-lamp/15' : 'bg-accented'"
         >
           <span
             class="font-mono text-[9px]"
-            :class="step.inChord ? 'text-lamp' : 'text-legend/60'"
+            :class="step.inChord ? 'text-primary' : 'text-dimmed'"
           >{{ step.degree }}</span>
           <span
             class="font-mono text-[11px]"
-            :class="step.inChord ? 'text-lamp' : 'text-legend'"
+            :class="step.inChord ? 'text-primary' : 'text-muted'"
           >{{ step.name }}</span>
         </li>
       </ol>
 
-      <p class="font-sans text-[11px] leading-relaxed text-legend">
+      <p class="font-sans text-[11px] leading-relaxed text-muted">
         Degrees {{ TRIAD_DEGREES.join(', ') }} highlighted make {{ chordLabel(chord, settings.accidentals) }}.
         The same seven notes spell {{ chordLabel(relative, settings.accidentals) }}, its relative
         {{ relative.quality }}.

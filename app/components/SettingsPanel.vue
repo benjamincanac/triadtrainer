@@ -1,106 +1,80 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Label } from '~/components/ui/label'
-import { Switch } from '~/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
 import type { Settings } from '~/composables/useSettings'
 
 const settings = defineModel<Settings>({ required: true })
 
 const QUALITIES = [
-  { value: 'major', label: 'Major' },
-  { value: 'minor', label: 'Minor' },
-  { value: 'both', label: 'Both' }
-] as const
-
-/**
- * A single-select toggle group clears itself when you click the active item.
- * The drill always needs a pool, so an empty selection keeps the old value.
- */
-const quality = computed({
-  get: () => settings.value.quality,
-  set: (value: Settings['quality'] | null) => {
-    if (value) settings.value = { ...settings.value, quality: value }
-  }
-})
+  { label: 'Major', value: 'major' },
+  { label: 'Minor', value: 'minor' },
+  { label: 'Both', value: 'both' }
+]
 
 const ACCIDENTALS = [
-  { value: 'sharps', label: 'C#' },
-  { value: 'flats', label: 'Db' }
-] as const
+  { label: 'C#', value: 'sharps' },
+  { label: 'Db', value: 'flats' }
+]
 
-const accidentals = computed({
-  get: () => settings.value.accidentals,
-  set: (value: Settings['accidentals'] | null) => {
-    if (value) settings.value = { ...settings.value, accidentals: value }
-  }
-})
+function field<K extends keyof Settings>(key: K) {
+  return computed({
+    get: () => settings.value[key],
+    set: (value: Settings[K]) => {
+      settings.value = { ...settings.value, [key]: value }
+    }
+  })
+}
 
-const hideNames = computed({
-  get: () => settings.value.hideNames,
-  set: (value: boolean) => {
-    settings.value = { ...settings.value, hideNames: value }
-  }
-})
+const quality = field('quality')
+const accidentals = field('accidentals')
+const hideNames = field('hideNames')
+const whiteRootsOnly = field('whiteRootsOnly')
 
-const whiteRootsOnly = computed({
-  get: () => settings.value.whiteRootsOnly,
-  set: (value: boolean) => {
-    settings.value = { ...settings.value, whiteRootsOnly: value }
-  }
-})
+/** Typography only — the layout is the component's own. */
+const RADIO_UI = {
+  legend: 'mb-1.5 font-mono text-[11px] font-normal text-muted',
+  label: 'font-mono text-[11px]'
+} as const
+
+const SWITCH_UI = {
+  root: 'flex-row-reverse items-center justify-between',
+  wrapper: 'ms-0 me-2',
+  label: 'font-mono text-[11px] font-normal text-muted'
+} as const
 </script>
 
 <template>
-  <section class="flex flex-col gap-5 rounded-lg border border-etch bg-panel p-4">
-    <h2 class="font-mono text-[10px] tracking-[0.18em] text-legend uppercase">
+  <section class="flex flex-col gap-5 rounded-lg border border-default bg-elevated p-4">
+    <h2 class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
       Settings
     </h2>
 
-    <div class="flex flex-col gap-2">
-      <span class="font-mono text-[11px] text-legend">Chord types</span>
-      <ToggleGroup v-model="quality" type="single" variant="outline" class="w-full">
-        <ToggleGroupItem
-          v-for="option in QUALITIES"
-          :key="option.value"
-          :value="option.value"
-          class="flex-1 font-mono text-xs data-[state=on]:border-lamp/40 data-[state=on]:bg-lamp/15 data-[state=on]:text-lamp"
-        >
-          {{ option.label }}
-        </ToggleGroupItem>
-      </ToggleGroup>
-    </div>
+    <URadioGroup
+      v-model="quality"
+      :items="QUALITIES"
+      legend="Chord types"
+      orientation="horizontal"
+      :ui="RADIO_UI"
+      variant="card"
+      size="xs"
+      indicator="hidden"
+    />
 
-    <div class="flex flex-col gap-2">
-      <span class="font-mono text-[11px] text-legend">Accidentals</span>
-      <ToggleGroup v-model="accidentals" type="single" variant="outline" class="w-full">
-        <ToggleGroupItem
-          v-for="option in ACCIDENTALS"
-          :key="option.value"
-          :value="option.value"
-          class="flex-1 font-mono text-xs data-[state=on]:border-lamp/40 data-[state=on]:bg-lamp/15 data-[state=on]:text-lamp"
-        >
-          {{ option.label }}
-        </ToggleGroupItem>
-      </ToggleGroup>
-    </div>
+    <URadioGroup
+      v-model="accidentals"
+      :items="ACCIDENTALS"
+      legend="Accidentals"
+      orientation="horizontal"
+      :ui="RADIO_UI"
+      variant="card"
+      size="xs"
+      indicator="hidden"
+    />
 
-    <div class="flex items-center justify-between gap-4">
-      <Label for="hide-names" class="font-mono text-[11px] font-normal text-legend">
-        Hide note names
-      </Label>
-      <Switch id="hide-names" v-model="hideNames" />
-    </div>
+    <USwitch v-model="hideNames" label="Hide note names" :ui="SWITCH_UI" />
+    <USwitch v-model="whiteRootsOnly" label="White-key roots only" :ui="SWITCH_UI" />
 
-    <div class="flex items-center justify-between gap-4">
-      <Label for="white-roots" class="font-mono text-[11px] font-normal text-legend">
-        White-key roots only
-      </Label>
-      <Switch id="white-roots" v-model="whiteRootsOnly" />
-    </div>
-
-    <p class="font-mono text-[10px] leading-relaxed text-legend/70">
-      Press <kbd class="rounded border border-etch bg-panel-raised px-1 py-0.5 text-ivory">space</kbd> to skip to the next chord.
+    <p class="font-mono text-[10px] leading-relaxed text-dimmed">
+      Press <UKbd value="space" size="sm" /> to skip to the next chord.
     </p>
   </section>
 </template>

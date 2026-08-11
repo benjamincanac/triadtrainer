@@ -35,7 +35,7 @@
       y="15"
       width="6"
       height="7"
-      fill="var(--color-lamp-soft)"
+      fill="var(--color-lamp-300)"
       clip-path="url(#trainer-mark-key-2)"
     />
     <rect
@@ -43,7 +43,7 @@
       y="15"
       width="6"
       height="7"
-      fill="var(--color-lamp-soft)"
+      fill="var(--color-lamp-300)"
       clip-path="url(#trainer-mark-key-3)"
     />
   </svg>
