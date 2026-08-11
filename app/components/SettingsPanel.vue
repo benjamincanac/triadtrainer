@@ -1,54 +1,40 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Label } from '~/components/ui/label'
-import { Switch } from '~/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '~/components/ui/toggle-group'
 import type { Settings } from '~/composables/useSettings'
 
 const settings = defineModel<Settings>({ required: true })
 
 const QUALITIES = [
-  { value: 'major', label: 'Major' },
-  { value: 'minor', label: 'Minor' },
-  { value: 'both', label: 'Both' }
-] as const
-
-/**
- * A single-select toggle group clears itself when you click the active item.
- * The drill always needs a pool, so an empty selection keeps the old value.
- */
-const quality = computed({
-  get: () => settings.value.quality,
-  set: (value: Settings['quality'] | null) => {
-    if (value) settings.value = { ...settings.value, quality: value }
-  }
-})
+  { label: 'Major', value: 'major' },
+  { label: 'Minor', value: 'minor' },
+  { label: 'Both', value: 'both' }
+]
 
 const ACCIDENTALS = [
-  { value: 'sharps', label: 'C#' },
-  { value: 'flats', label: 'Db' }
-] as const
+  { label: 'C#', value: 'sharps' },
+  { label: 'Db', value: 'flats' }
+]
 
-const accidentals = computed({
-  get: () => settings.value.accidentals,
-  set: (value: Settings['accidentals'] | null) => {
-    if (value) settings.value = { ...settings.value, accidentals: value }
-  }
-})
+// SEGMENT_UI is auto-imported from app/utils/segment.ts: these are choices, not
+// panels, so they stay radio groups and only borrow the segmented look.
 
-const hideNames = computed({
-  get: () => settings.value.hideNames,
-  set: (value: boolean) => {
-    settings.value = { ...settings.value, hideNames: value }
-  }
-})
+function field<K extends keyof Settings>(key: K) {
+  return computed({
+    get: () => settings.value[key],
+    set: (value: Settings[K]) => {
+      // A card radio can emit null when re-clicking the active item; the drill
+      // always needs a value, so an empty selection keeps the old one.
+      if (value !== null && value !== undefined) {
+        settings.value = { ...settings.value, [key]: value }
+      }
+    }
+  })
+}
 
-const whiteRootsOnly = computed({
-  get: () => settings.value.whiteRootsOnly,
-  set: (value: boolean) => {
-    settings.value = { ...settings.value, whiteRootsOnly: value }
-  }
-})
+const quality = field('quality')
+const accidentals = field('accidentals')
+const hideNames = field('hideNames')
+const whiteRootsOnly = field('whiteRootsOnly')
 </script>
 
 <template>
@@ -57,50 +43,46 @@ const whiteRootsOnly = computed({
       Settings
     </h2>
 
-    <div class="flex flex-col gap-2">
-      <span class="font-mono text-[11px] text-legend">Chord types</span>
-      <ToggleGroup v-model="quality" type="single" variant="outline" class="w-full">
-        <ToggleGroupItem
-          v-for="option in QUALITIES"
-          :key="option.value"
-          :value="option.value"
-          class="flex-1 font-mono text-xs data-[state=on]:border-lamp/40 data-[state=on]:bg-lamp/15 data-[state=on]:text-lamp"
-        >
-          {{ option.label }}
-        </ToggleGroupItem>
-      </ToggleGroup>
-    </div>
+    <URadioGroup
+      v-model="quality"
+      :items="QUALITIES"
+      orientation="horizontal"
+      variant="card"
+      indicator="hidden"
+      :ui="SEGMENT_UI"
+      legend="Chord types"
+    />
 
-    <div class="flex flex-col gap-2">
-      <span class="font-mono text-[11px] text-legend">Accidentals</span>
-      <ToggleGroup v-model="accidentals" type="single" variant="outline" class="w-full">
-        <ToggleGroupItem
-          v-for="option in ACCIDENTALS"
-          :key="option.value"
-          :value="option.value"
-          class="flex-1 font-mono text-xs data-[state=on]:border-lamp/40 data-[state=on]:bg-lamp/15 data-[state=on]:text-lamp"
-        >
-          {{ option.label }}
-        </ToggleGroupItem>
-      </ToggleGroup>
-    </div>
+    <URadioGroup
+      v-model="accidentals"
+      :items="ACCIDENTALS"
+      orientation="horizontal"
+      variant="card"
+      indicator="hidden"
+      :ui="SEGMENT_UI"
+      legend="Accidentals"
+    />
 
-    <div class="flex items-center justify-between gap-4">
-      <Label for="hide-names" class="font-mono text-[11px] font-normal text-legend">
-        Hide note names
-      </Label>
-      <Switch id="hide-names" v-model="hideNames" />
-    </div>
+    <USwitch
+      v-model="hideNames"
+      label="Hide note names"
+      :ui="{
+        root: 'flex-row-reverse items-center justify-between',
+        label: 'font-mono text-[11px] font-normal text-legend'
+      }"
+    />
 
-    <div class="flex items-center justify-between gap-4">
-      <Label for="white-roots" class="font-mono text-[11px] font-normal text-legend">
-        White-key roots only
-      </Label>
-      <Switch id="white-roots" v-model="whiteRootsOnly" />
-    </div>
+    <USwitch
+      v-model="whiteRootsOnly"
+      label="White-key roots only"
+      :ui="{
+        root: 'flex-row-reverse items-center justify-between',
+        label: 'font-mono text-[11px] font-normal text-legend'
+      }"
+    />
 
     <p class="font-mono text-[10px] leading-relaxed text-legend/70">
-      Press <kbd class="rounded border border-etch bg-panel-raised px-1 py-0.5 text-ivory">space</kbd> to skip to the next chord.
+      Press <UKbd value="space" size="sm" /> to skip to the next chord.
     </p>
   </section>
 </template>

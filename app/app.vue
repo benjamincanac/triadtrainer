@@ -6,7 +6,7 @@ const links = [
 </script>
 
 <template>
-  <div class="min-h-dvh bg-shell">
+  <UApp class="min-h-dvh bg-shell">
     <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header class="flex items-center justify-between gap-4 border-b border-etch pb-4">
         <!-- Silkscreened gear label, not a logotype. Serif italic is reserved
@@ -34,5 +34,5 @@ const links = [
 
       <NuxtPage />
     </main>
-  </div>
+  </UApp>
 </template>

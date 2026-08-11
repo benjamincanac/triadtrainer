@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
-import { Button } from '~/components/ui/button'
 import { useTrainer } from '~/composables/useTrainer'
 
 const {
@@ -44,9 +43,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <ChordPrompt :chord="current" :phase="phase" :verdict="verdict" />
 
     <div class="flex justify-center">
-      <Button variant="outline" size="sm" class="font-mono text-xs" @click="next">
-        Skip
-      </Button>
+      <UButton
+        color="neutral"
+        variant="outline"
+        size="sm"
+        label="Skip"
+        class="font-mono text-xs"
+        @click="next"
+      />
     </div>
 
     <PianoKeyboard

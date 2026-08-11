@@ -1,18 +1,25 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
-
 @import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'shadcn-vue/tailwind.css';
-
-@custom-variant dark (&:is(.dark *));
+@import '@nuxt/ui';
 
 /* ---------------------------------------------------------------------------
    Studio hardware palette. The app is dark-only — it's a piece of gear sitting
-   on a desk, not a document — so there is no light variant and <html> carries
-   the `dark` class permanently (see nuxt.config.ts).
+   on a desk, not a document — so <html> carries the `dark` class permanently
+   (see nuxt.config.ts) and there is no light variant to maintain.
    --------------------------------------------------------------------------- */
 @theme static {
+  /* The lamp amber, as a full scale so it can drive Nuxt UI's `primary`. */
+  --color-lamp-50: #fdf8ed;
+  --color-lamp-100: #faedcf;
+  --color-lamp-200: #f5d99c;
+  --color-lamp-300: #f4c66a;
+  --color-lamp-400: #f2a93b;
+  --color-lamp-500: #e0942a;
+  --color-lamp-600: #bd7620;
+  --color-lamp-700: #96591c;
+  --color-lamp-800: #77461c;
+  --color-lamp-900: #613a1a;
+  --color-lamp-950: #381e0b;
+
   --color-shell: #16130f;
   --color-panel: #1f1b15;
   --color-panel-raised: #262118;
@@ -34,104 +41,38 @@
   --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
 }
 
-/* shadcn-vue tokens mapped onto the palette above, so the generated components
-   inherit the gear look instead of the default neutral theme. Declared on both
-   selectors because the components lean on `dark:` variants throughout. */
+/* Point Nuxt UI's semantic surfaces at the studio palette, so UI components
+   sit on the same browns as the hand-built keyboard instead of Tailwind greys. */
 :root,
 .dark {
-  --radius: 0.5rem;
+  --ui-radius: 0.5rem;
 
-  --background: #16130f;
-  --foreground: #ede6d6;
+  --ui-bg: var(--color-shell);
+  --ui-bg-muted: var(--color-panel);
+  --ui-bg-elevated: var(--color-panel);
+  --ui-bg-accented: var(--color-panel-raised);
+  --ui-bg-inverted: var(--color-ivory);
 
-  --card: #1f1b15;
-  --card-foreground: #ede6d6;
+  --ui-text-dimmed: #6d6455;
+  --ui-text-muted: var(--color-legend);
+  --ui-text-toned: #b5ab97;
+  --ui-text: var(--color-ivory);
+  --ui-text-highlighted: #f7f2e6;
+  --ui-text-inverted: var(--color-shell);
 
-  --popover: #1f1b15;
-  --popover-foreground: #ede6d6;
+  --ui-border: var(--color-etch);
+  --ui-border-muted: var(--color-etch);
+  --ui-border-accented: #463d2e;
+  --ui-border-inverted: var(--color-ivory);
 
-  --primary: #f2a93b;
-  --primary-foreground: #16130f;
-
-  --secondary: #262118;
-  --secondary-foreground: #ede6d6;
-
-  --muted: #221d16;
-  --muted-foreground: #9a8f7b;
-
-  --accent: #262118;
-  --accent-foreground: #f2a93b;
-
-  --destructive: #c4553f;
-  --destructive-foreground: #16130f;
-
-  --border: #332c21;
-  --input: #332c21;
-  --ring: #f2a93b;
-
-  --chart-1: #f2a93b;
-  --chart-2: #7fbf8e;
-  --chart-3: #c4553f;
-  --chart-4: #9a8f7b;
-  --chart-5: #ede6d6;
-
-  --sidebar: #1f1b15;
-  --sidebar-foreground: #ede6d6;
-  --sidebar-primary: #f2a93b;
-  --sidebar-primary-foreground: #16130f;
-  --sidebar-accent: #262118;
-  --sidebar-accent-foreground: #f2a93b;
-  --sidebar-border: #332c21;
-  --sidebar-ring: #f2a93b;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-
-  --font-heading: var(--font-serif);
+  /* The lamp reads at 400; the darker end of the scale disappears on brown. */
+  --ui-primary: var(--color-lamp-400);
+  --ui-secondary: var(--color-ok);
+  --ui-success: var(--color-ok);
+  --ui-error: var(--color-bad);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
   html {
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
@@ -165,14 +106,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
   }
 }

@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '~/components/ui/select'
 import type { MidiInputInfo, MidiState } from '~/composables/useMidi'
 
 const props = defineProps<{
@@ -52,6 +45,10 @@ const COPY: Record<MidiState, { lamp: string, title: string, detail: string }> =
 
 const copy = computed(() => COPY[props.state])
 
+const deviceItems = computed(() =>
+  props.inputs.map(input => ({ label: input.name, value: input.id }))
+)
+
 const value = computed({
   get: () => props.selectedId ?? undefined,
   set: (id: string | undefined) => {
@@ -79,21 +76,14 @@ const value = computed({
     </div>
 
     <!-- Only worth showing when there's actually a choice to make. -->
-    <Select v-if="inputs.length > 1" v-model="value">
-      <SelectTrigger class="w-full font-mono text-xs">
-        <SelectValue placeholder="Select an input" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem
-          v-for="input in inputs"
-          :key="input.id"
-          :value="input.id"
-          class="font-mono text-xs"
-        >
-          {{ input.name }}
-        </SelectItem>
-      </SelectContent>
-    </Select>
+    <USelect
+      v-if="inputs.length > 1"
+      v-model="value"
+      :items="deviceItems"
+      placeholder="Select an input"
+      class="w-full font-mono text-xs"
+      :ui="{ item: 'font-mono text-xs' }"
+    />
 
     <p v-else-if="inputs.length === 1" class="font-mono text-[10px] text-legend/70">
       {{ inputs[0]!.name }}
