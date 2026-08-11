@@ -60,17 +60,17 @@ const trend = computed(() => {
 </script>
 
 <template>
-  <section class="rounded-lg border border-etch bg-panel p-4">
+  <section class="rounded-lg border border-default bg-elevated p-4">
     <header class="mb-3 flex items-baseline justify-between gap-2">
-      <h2 class="font-mono text-[10px] tracking-[0.18em] text-legend uppercase">
+      <h2 class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
         Mean per session
       </h2>
-      <span class="tabular font-mono text-[10px] text-legend">
+      <span class="tabular font-mono text-[10px] text-muted">
         {{ series.length }} {{ series.length === 1 ? 'session' : 'sessions' }}
       </span>
     </header>
 
-    <p v-if="points.length < 2" class="py-6 text-center font-mono text-[11px] text-legend">
+    <p v-if="points.length < 2" class="py-6 text-center font-mono text-[11px] text-muted">
       Two sessions needed before the curve means anything.
     </p>
 
@@ -106,7 +106,7 @@ const trend = computed(() => {
         />
       </svg>
 
-      <footer class="mt-2 flex items-baseline justify-between font-mono text-[10px] text-legend">
+      <footer class="mt-2 flex items-baseline justify-between font-mono text-[10px] text-muted">
         <span class="tabular">fastest {{ formatSeconds(bounds.min) }}</span>
         <span class="tabular">slowest {{ formatSeconds(bounds.max) }}</span>
       </footer>

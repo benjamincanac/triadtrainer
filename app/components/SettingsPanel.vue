@@ -38,8 +38,8 @@ const whiteRootsOnly = field('whiteRootsOnly')
 </script>
 
 <template>
-  <section class="flex flex-col gap-5 rounded-lg border border-etch bg-panel p-4">
-    <h2 class="font-mono text-[10px] tracking-[0.18em] text-legend uppercase">
+  <section class="flex flex-col gap-5 rounded-lg border border-default bg-elevated p-4">
+    <h2 class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
       Settings
     </h2>
 
@@ -68,7 +68,7 @@ const whiteRootsOnly = field('whiteRootsOnly')
       label="Hide note names"
       :ui="{
         root: 'flex-row-reverse items-center justify-between',
-        label: 'font-mono text-[11px] font-normal text-legend'
+        label: 'font-mono text-[11px] font-normal text-muted'
       }"
     />
 
@@ -77,11 +77,11 @@ const whiteRootsOnly = field('whiteRootsOnly')
       label="White-key roots only"
       :ui="{
         root: 'flex-row-reverse items-center justify-between',
-        label: 'font-mono text-[11px] font-normal text-legend'
+        label: 'font-mono text-[11px] font-normal text-muted'
       }"
     />
 
-    <p class="font-mono text-[10px] leading-relaxed text-legend/70">
+    <p class="font-mono text-[10px] leading-relaxed text-dimmed">
       Press <UKbd value="space" size="sm" /> to skip to the next chord.
     </p>
   </section>

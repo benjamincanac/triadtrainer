@@ -62,7 +62,7 @@ function play(root: number) {
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+    <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
       Nine of the twelve {{ quality }} triads are the same gesture moved around the keyboard.
       Learn the four groups instead of twelve chords. Tap a diagram to hear it.
     </p>
@@ -71,13 +71,13 @@ function play(root: number) {
       <article
         v-for="group in families"
         :key="group.family"
-        class="flex flex-col gap-2 rounded-lg border border-etch bg-panel p-3"
+        class="flex flex-col gap-2 rounded-lg border border-default bg-elevated p-3"
       >
         <div class="flex items-baseline justify-between gap-2">
-          <h3 class="font-mono text-xs tracking-wide text-ivory">
+          <h3 class="font-mono text-xs tracking-wide text-highlighted">
             {{ group.title }}
           </h3>
-          <span class="font-mono text-[10px] text-lamp">
+          <span class="font-mono text-[10px] text-primary">
             {{ group.rootNames.join(' · ') }}
           </span>
         </div>
@@ -100,11 +100,11 @@ function play(root: number) {
           />
         </button>
 
-        <p class="font-sans text-[11px] leading-relaxed text-legend">
+        <p class="font-sans text-[11px] leading-relaxed text-muted">
           {{ group.blurb }}
         </p>
 
-        <p class="font-mono text-[10px] text-legend/70">
+        <p class="font-mono text-[10px] text-dimmed">
           e.g. {{ chordLabel(group.example, settings.accidentals) }} = {{ group.exampleNames.join(' ') }}
         </p>
       </article>

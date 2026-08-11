@@ -4,7 +4,7 @@
  * and only borrow the look.
  */
 export const SEGMENT_UI = {
-  legend: 'mb-1.5 font-mono text-[11px] font-normal text-legend',
+  legend: 'mb-1.5 font-mono text-[11px] font-normal text-muted',
   fieldset: 'w-full gap-1',
   // The card variant is generously padded by default; the panel is meant to
   // stay quiet next to the keyboard, so it gets tightened here.

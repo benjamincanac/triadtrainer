@@ -61,14 +61,14 @@ function setQuality(value: unknown) {
       :content="false"
       color="neutral"
       :ui="{
-        list: 'w-full bg-panel',
+        list: 'w-full bg-elevated',
         // The keyboard is the loud element; a solid pill here competes with it.
-        indicator: 'bg-lamp/15 ring ring-lamp/30',
-        trigger: 'flex-1 font-mono text-xs data-[state=active]:text-lamp'
+        indicator: 'bg-primary/15 ring ring-primary/30',
+        trigger: 'flex-1 font-mono text-xs data-[state=active]:text-primary'
       }"
     />
 
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-etch bg-panel px-3 py-2.5">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-default bg-elevated px-3 py-2.5">
       <URadioGroup
         v-if="needsRoot"
         :model-value="root"
@@ -81,7 +81,7 @@ function setQuality(value: unknown) {
         @update:model-value="root = Number($event)"
       />
 
-      <span v-else class="font-mono text-[11px] text-legend">
+      <span v-else class="font-mono text-[11px] text-muted">
         All twelve roots
       </span>
 

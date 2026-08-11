@@ -7,6 +7,29 @@
    (see nuxt.config.ts) and there is no light variant to maintain.
    --------------------------------------------------------------------------- */
 @theme static {
+  /*
+    The studio browns ARE the neutral palette, not a set of tokens sitting
+    beside it. Shades are placed to land on Nuxt UI's dark-mode derivation:
+      900 → --ui-bg          the shell
+      800 → --ui-bg-elevated the panels
+      700 → --ui-bg-accented raised chrome
+      400 → --ui-text-muted  the etched legends
+      200 → --ui-text        ivory
+    So `bg-default`, `text-muted` and friends resolve to this palette for free,
+    and components inherit the gear look without per-surface overrides.
+  */
+  --color-gear-50: #faf7f0;
+  --color-gear-100: #f3eee2;
+  --color-gear-200: #ede6d6;
+  --color-gear-300: #c9c0ac;
+  --color-gear-400: #9a8f7b;
+  --color-gear-500: #6d6455;
+  --color-gear-600: #4a4335;
+  --color-gear-700: #332c21;
+  --color-gear-800: #1f1b15;
+  --color-gear-900: #16130f;
+  --color-gear-950: #0b0906;
+
   /* The lamp amber, as a full scale so it can drive Nuxt UI's `primary`. */
   --color-lamp-50: #fdf8ed;
   --color-lamp-100: #faedcf;
@@ -20,12 +43,14 @@
   --color-lamp-900: #613a1a;
   --color-lamp-950: #381e0b;
 
-  --color-shell: #16130f;
-  --color-panel: #1f1b15;
-  --color-panel-raised: #262118;
-  --color-ivory: #ede6d6;
-  --color-ebony: #0b0906;
-  --color-lamp: #f2a93b;
+  /*
+    Physical materials, not UI roles. A key is ivory because it's a piano key,
+    so these keep their names — but they're drawn from the neutral scale so the
+    instrument and the chrome stay in one family.
+  */
+  --color-ivory: var(--color-gear-200);
+  --color-ebony: var(--color-gear-950);
+  --color-lamp: var(--color-lamp-400);
   /* Solid tints for lit diagram keys. Transparent amber over the dark panel
      turns olive, so these are baked rather than composited. */
   --color-lamp-soft: #f6cd8a;
@@ -33,43 +58,20 @@
   --color-ok: #7fbf8e;
   --color-bad: #c4553f;
 
-  --color-etch: #332c21;
-  --color-legend: #9a8f7b;
-
   --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
   --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
 }
 
-/* Point Nuxt UI's semantic surfaces at the studio palette, so UI components
-   sit on the same browns as the hand-built keyboard instead of Tailwind greys. */
-:root,
-.dark {
-  --ui-radius: 0.5rem;
-
-  --ui-bg: var(--color-shell);
-  --ui-bg-muted: var(--color-panel);
-  --ui-bg-elevated: var(--color-panel);
-  --ui-bg-accented: var(--color-panel-raised);
-  --ui-bg-inverted: var(--color-ivory);
-
-  --ui-text-dimmed: #6d6455;
-  --ui-text-muted: var(--color-legend);
-  --ui-text-toned: #b5ab97;
-  --ui-text: var(--color-ivory);
-  --ui-text-highlighted: #f7f2e6;
-  --ui-text-inverted: var(--color-shell);
-
-  --ui-border: var(--color-etch);
-  --ui-border-muted: var(--color-etch);
-  --ui-border-accented: #463d2e;
-  --ui-border-inverted: var(--color-ivory);
-
-  /* The lamp reads at 400; the darker end of the scale disappears on brown. */
-  --ui-primary: var(--color-lamp-400);
-  --ui-secondary: var(--color-ok);
-  --ui-success: var(--color-ok);
-  --ui-error: var(--color-bad);
+/*
+  The one place the default derivation doesn't suit a panel of gear. Everything
+  else falls out of the neutral scale above.
+*/
+:root {
+  --ui-radius: 0.375rem;
+  /* Default is neutral-800, the same value as the panels, so a card would have
+     no visible edge. 700 is the etched hairline between sections. */
+  --ui-border: var(--ui-color-neutral-700);
 }
 
 @layer base {
@@ -78,13 +80,34 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Nuxt UI already applies `antialiased text-default bg-default` to the body,
+     so only the typeface is set here. */
   body {
-    @apply bg-shell text-ivory font-sans antialiased;
+    @apply font-sans;
   }
 
-  :focus-visible {
-    @apply outline-lamp outline-2 outline-offset-2;
+  /* Tailwind v4 preflight gives buttons `cursor: default`; this is an
+     instrument, so every control should feel clickable. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    @apply cursor-pointer;
   }
+}
+
+/*
+  One focus colour across the app regardless of a component's `color` prop.
+  Deliberately outside `@layer` so it wins over the component themes — inside a
+  layer the per-component outlines take precedence.
+*/
+*,
+::before,
+::after {
+  @apply outline-primary/25;
+}
+
+*:focus-visible,
+*:has(> a:focus-visible) {
+  --tw-ring-color: var(--ui-primary);
 }
 
 @layer utilities {

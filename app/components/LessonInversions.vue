@@ -25,7 +25,7 @@ const voicings = computed(() =>
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+    <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
       Same three notes, three stacking orders. The drill accepts all of them, because
       {{ chordLabel(chord, settings.accidentals) }} is a set of pitch classes, not a fingering.
     </p>
@@ -34,21 +34,21 @@ const voicings = computed(() =>
       <article
         v-for="voicing in voicings"
         :key="voicing.name"
-        class="grid gap-2.5 rounded-lg border border-etch bg-panel p-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:items-center"
+        class="grid gap-2.5 rounded-lg border border-default bg-elevated p-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:items-center"
       >
         <div class="flex flex-col gap-1">
           <div class="flex items-baseline gap-2">
-            <h3 class="font-mono text-xs text-ivory capitalize">
+            <h3 class="font-mono text-xs text-highlighted capitalize">
               {{ voicing.name }}
             </h3>
-            <span class="font-mono text-[10px] text-legend">
+            <span class="font-mono text-[10px] text-muted">
               {{ voicing.bass }} in bass
             </span>
           </div>
-          <p class="font-mono text-[11px] text-lamp">
+          <p class="font-mono text-[11px] text-primary">
             {{ voicing.names.join(' ') }}
           </p>
-          <p class="font-sans text-[11px] leading-relaxed text-legend">
+          <p class="font-sans text-[11px] leading-relaxed text-muted">
             {{ voicing.blurb }}
           </p>
         </div>

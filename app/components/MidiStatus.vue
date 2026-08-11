@@ -17,12 +17,12 @@ const emit = defineEmits<{ select: [id: string] }>()
  */
 const COPY: Record<MidiState, { lamp: string, title: string, detail: string }> = {
   idle: {
-    lamp: 'bg-legend/40',
+    lamp: 'bg-gear-400/40',
     title: 'Connecting',
     detail: 'Asking the browser for MIDI access.'
   },
   unsupported: {
-    lamp: 'bg-legend/40',
+    lamp: 'bg-gear-400/40',
     title: 'No Web MIDI in this browser',
     detail: 'Web MIDI is Chromium-only. In Firefox and Safari the on-screen keyboard is the input: click the keys.'
   },
@@ -58,7 +58,7 @@ const value = computed({
 </script>
 
 <template>
-  <section class="flex flex-col gap-3 rounded-lg border border-etch bg-panel p-4">
+  <section class="flex flex-col gap-3 rounded-lg border border-default bg-elevated p-4">
     <div class="flex items-start gap-3">
       <span
         class="mt-1 size-2 shrink-0 rounded-full transition-colors"
@@ -66,10 +66,10 @@ const value = computed({
         aria-hidden="true"
       />
       <div class="flex flex-col gap-1">
-        <h2 class="font-mono text-[11px] tracking-wide text-ivory">
+        <h2 class="font-mono text-[11px] tracking-wide text-highlighted">
           {{ copy.title }}
         </h2>
-        <p class="font-sans text-[11px] leading-relaxed text-legend">
+        <p class="font-sans text-[11px] leading-relaxed text-muted">
           {{ copy.detail }}
         </p>
       </div>
@@ -85,7 +85,7 @@ const value = computed({
       :ui="{ item: 'font-mono text-xs' }"
     />
 
-    <p v-else-if="inputs.length === 1" class="font-mono text-[10px] text-legend/70">
+    <p v-else-if="inputs.length === 1" class="font-mono text-[10px] text-dimmed">
       {{ inputs[0]!.name }}
     </p>
   </section>

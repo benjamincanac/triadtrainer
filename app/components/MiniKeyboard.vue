@@ -82,7 +82,7 @@ function keyAttrs(note: number) {
         v-for="note in layout.whiteNotes"
         :key="note"
         v-bind="keyAttrs(note)"
-        class="flex min-w-0 flex-1 flex-col justify-end rounded-b border border-t-0 border-etch/60 transition-colors"
+        class="flex min-w-0 flex-1 flex-col justify-end rounded-b border border-t-0 border-default transition-colors"
         :class="[
           interactive ? 'cursor-pointer' : '',
           key(note).root
