@@ -3,11 +3,29 @@
 // vercel.json, or in nitro.routeRules. Anything more restrictive silently kills
 // navigator.requestMIDIAccess() in production and the app falls back to clicks.
 export default defineNuxtConfig({
-  // @nuxt/ui registers the Tailwind Vite plugin itself, so there is no
-  // @tailwindcss/vite entry here.
-  modules: ['@nuxt/eslint', '@nuxt/fonts', '@nuxt/ui'],
+  // @nuxt/ui registers the Tailwind Vite plugin and @nuxt/fonts itself, so
+  // neither needs its own entry here.
+  modules: ['@nuxt/eslint', '@nuxt/ui'],
 
   devtools: { enabled: false },
+
+  ui: {
+    // The app is dark-only and sets `class="dark"` in app.head, so the
+    // colour-mode module has nothing to switch.
+    colorMode: false,
+
+    theme: {
+      // Only `primary` is used. The default also generates secondary, success,
+      // info, warning and error, none of which this app references. `neutral`
+      // is always present and isn't listed here.
+      colors: ['primary']
+    },
+
+    experimental: {
+      // Emit CSS only for the handful of components actually used.
+      componentDetection: true
+    }
+  },
 
   app: {
     head: {

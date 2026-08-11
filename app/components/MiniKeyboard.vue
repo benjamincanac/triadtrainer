@@ -88,7 +88,7 @@ function keyAttrs(note: number) {
           key(note).root
             ? 'bg-lamp text-ebony'
             : key(note).on
-              ? 'bg-lamp-soft text-ebony'
+              ? 'bg-lamp-300 text-ebony'
               : 'bg-ivory text-ebony/40'
         ]"
         @pointerdown="interactive && (emit('press', note), $event.preventDefault())"
@@ -112,7 +112,7 @@ function keyAttrs(note: number) {
           key(black.note).root
             ? 'bg-lamp'
             : key(black.note).on
-              ? 'bg-lamp-deep'
+              ? 'bg-lamp-700'
               : 'bg-ebony'
         ]"
         :style="{ left: `${black.left}%`, width: `${black.width}%` }"

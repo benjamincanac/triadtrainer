@@ -65,7 +65,7 @@ const trend = computed(() => {
       <h2 class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
         Mean per session
       </h2>
-      <span class="tabular font-mono text-[10px] text-muted">
+      <span class="font-mono tabular-nums text-[10px] text-muted">
         {{ series.length }} {{ series.length === 1 ? 'session' : 'sessions' }}
       </span>
     </header>
@@ -107,8 +107,8 @@ const trend = computed(() => {
       </svg>
 
       <footer class="mt-2 flex items-baseline justify-between font-mono text-[10px] text-muted">
-        <span class="tabular">fastest {{ formatSeconds(bounds.min) }}</span>
-        <span class="tabular">slowest {{ formatSeconds(bounds.max) }}</span>
+        <span class="tabular-nums">fastest {{ formatSeconds(bounds.min) }}</span>
+        <span class="tabular-nums">slowest {{ formatSeconds(bounds.max) }}</span>
       </footer>
     </template>
   </section>

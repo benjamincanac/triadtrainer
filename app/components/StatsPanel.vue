@@ -28,7 +28,7 @@ const readouts = computed(() => [
       <span class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
         {{ readout.label }}
       </span>
-      <span class="tabular font-mono text-xl leading-none text-highlighted">
+      <span class="font-mono tabular-nums text-xl leading-none text-highlighted">
         {{ readout.value }}
       </span>
     </div>

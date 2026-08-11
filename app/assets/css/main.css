@@ -34,11 +34,11 @@
   --color-lamp-50: #fdf8ed;
   --color-lamp-100: #faedcf;
   --color-lamp-200: #f5d99c;
-  --color-lamp-300: #f4c66a;
+  --color-lamp-300: #f6cd8a;
   --color-lamp-400: #f2a93b;
   --color-lamp-500: #e0942a;
   --color-lamp-600: #bd7620;
-  --color-lamp-700: #96591c;
+  --color-lamp-700: #8a6529;
   --color-lamp-800: #77461c;
   --color-lamp-900: #613a1a;
   --color-lamp-950: #381e0b;
@@ -51,10 +51,6 @@
   --color-ivory: var(--color-gear-200);
   --color-ebony: var(--color-gear-950);
   --color-lamp: var(--color-lamp-400);
-  /* Solid tints for lit diagram keys. Transparent amber over the dark panel
-     turns olive, so these are baked rather than composited. */
-  --color-lamp-soft: #f6cd8a;
-  --color-lamp-deep: #8a6529;
   --color-ok: #7fbf8e;
   --color-bad: #c4553f;
 
@@ -110,14 +106,6 @@
   --tw-ring-color: var(--ui-primary);
 }
 
-@layer utilities {
-  /* Every number in the UI is read against the one before it, so they all need
-     to sit in the same column. */
-  .tabular {
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum';
-  }
-}
 
 /* The lamps under the keys are the one animated element. Reduced motion keeps
    the colour changes — they carry the verdict — and drops the transitions. */
