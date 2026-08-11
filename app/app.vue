@@ -9,8 +9,14 @@ const links = [
   <div class="min-h-dvh bg-shell">
     <main class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">
       <header class="flex items-center justify-between gap-4 border-b border-etch pb-4">
-        <h1 class="font-mono text-[11px] tracking-[0.25em] text-legend uppercase">
-          Triad trainer
+        <!-- The name is itself an expression marking, so it gets the same serif
+             italic as the chord prompt, three sizes down so it stays a wordmark
+             and doesn't compete with it. -->
+        <h1 class="flex items-baseline gap-2.5">
+          <span class="font-serif text-lg italic text-ivory">Subito</span>
+          <span class="font-mono text-[10px] tracking-[0.18em] text-legend uppercase">
+            triad trainer
+          </span>
         </h1>
 
         <nav class="flex gap-1" aria-label="Sections">

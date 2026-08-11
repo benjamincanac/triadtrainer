@@ -2,7 +2,7 @@ import { ref, watch } from 'vue'
 import { readStored, writeStored } from './useStorage'
 import type { QualityFilter } from './useTheory'
 
-const STORAGE_KEY = 'piano.settings.v1'
+const STORAGE_KEY = 'subito.settings.v1'
 
 export interface Settings {
   /** Which triads the drill draws from. */

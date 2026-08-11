@@ -7,8 +7,8 @@ import type { Chord, Quality } from './useTheory'
  * displayed and stops at validation, right or wrong — a wrong answer retries the
  * same chord, so both halves of "how long did that actually take me" are counted.
  */
-const ATTEMPTS_KEY = 'piano.attempts.v1'
-const SESSIONS_KEY = 'piano.sessions.v1'
+const ATTEMPTS_KEY = 'subito.attempts.v1'
+const SESSIONS_KEY = 'subito.sessions.v1'
 
 /** Enough recent detail for the rolling numbers without unbounded growth. */
 const MAX_ATTEMPTS = 500
