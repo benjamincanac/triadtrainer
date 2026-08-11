@@ -16,7 +16,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.123",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/ui": "^4.10.0",
     "nuxt": "^4.5.2",

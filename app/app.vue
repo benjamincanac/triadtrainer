@@ -11,11 +11,8 @@ const items: NavigationMenuItem[][] = [
   [
     {
       label: 'GitHub',
-      icon: 'i-lucide-github',
       to: 'https://github.com/benjamincanac/triadtrainer',
       target: '_blank',
-      // Icon-only in the header; the label stays for screen readers.
-      ui: { link: 'px-1.5', linkLabel: 'sr-only', linkLeadingIcon: 'size-4' }
     }
   ]
 ]
