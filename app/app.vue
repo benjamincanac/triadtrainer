@@ -1,7 +1,23 @@
 <script setup lang="ts">
-const links = [
-  { to: '/', label: 'Drill' },
-  { to: '/learn', label: 'Learn' }
+import type { NavigationMenuItem } from '@nuxt/ui'
+
+const items: NavigationMenuItem[][] = [
+  [
+    // `exact` or `/` stays active on every route, since the default match is a
+    // prefix match.
+    { label: 'Drill', to: '/', exact: true },
+    { label: 'Learn', to: '/learn' }
+  ],
+  [
+    {
+      label: 'GitHub',
+      icon: 'i-lucide-github',
+      to: 'https://github.com/benjamincanac/triadtrainer',
+      target: '_blank',
+      // Icon-only in the header; the label stays for screen readers.
+      ui: { link: 'px-1.5', linkLabel: 'sr-only', linkLeadingIcon: 'size-4' }
+    }
+  ]
 ]
 </script>
 
@@ -19,17 +35,10 @@ const links = [
           </span>
         </h1>
 
-        <nav class="flex gap-1" aria-label="Sections">
-          <NuxtLink
-            v-for="link in links"
-            :key="link.to"
-            :to="link.to"
-            class="rounded px-2.5 py-1 font-mono text-[11px] text-muted transition-colors hover:text-highlighted"
-            active-class="bg-primary/15 text-primary"
-          >
-            {{ link.label }}
-          </NuxtLink>
-        </nav>
+        <UNavigationMenu
+          :items="items"
+          :ui="{ link: 'font-mono text-[11px]' }"
+        />
       </header>
 
       <NuxtPage />

@@ -15,18 +15,11 @@ const ACCIDENTALS = [
   { label: 'Db', value: 'flats' }
 ]
 
-// SEGMENT_UI is auto-imported from app/utils/segment.ts: these are choices, not
-// panels, so they stay radio groups and only borrow the segmented look.
-
 function field<K extends keyof Settings>(key: K) {
   return computed({
     get: () => settings.value[key],
     set: (value: Settings[K]) => {
-      // A card radio can emit null when re-clicking the active item; the drill
-      // always needs a value, so an empty selection keeps the old one.
-      if (value !== null && value !== undefined) {
-        settings.value = { ...settings.value, [key]: value }
-      }
+      settings.value = { ...settings.value, [key]: value }
     }
   })
 }
@@ -35,6 +28,18 @@ const quality = field('quality')
 const accidentals = field('accidentals')
 const hideNames = field('hideNames')
 const whiteRootsOnly = field('whiteRootsOnly')
+
+/** Typography only — the layout is the component's own. */
+const RADIO_UI = {
+  legend: 'mb-1.5 font-mono text-[11px] font-normal text-muted',
+  label: 'font-mono text-[11px]'
+} as const
+
+const SWITCH_UI = {
+  root: 'flex-row-reverse items-center justify-between',
+  wrapper: 'ms-0 me-2',
+  label: 'font-mono text-[11px] font-normal text-muted'
+} as const
 </script>
 
 <template>
@@ -46,40 +51,27 @@ const whiteRootsOnly = field('whiteRootsOnly')
     <URadioGroup
       v-model="quality"
       :items="QUALITIES"
-      orientation="horizontal"
-      variant="card"
-      indicator="hidden"
-      :ui="SEGMENT_UI"
       legend="Chord types"
+      orientation="horizontal"
+      :ui="RADIO_UI"
+      variant="card"
+      size="xs"
+      indicator="hidden"
     />
 
     <URadioGroup
       v-model="accidentals"
       :items="ACCIDENTALS"
-      orientation="horizontal"
-      variant="card"
-      indicator="hidden"
-      :ui="SEGMENT_UI"
       legend="Accidentals"
+      orientation="horizontal"
+      :ui="RADIO_UI"
+      variant="card"
+      size="xs"
+      indicator="hidden"
     />
 
-    <USwitch
-      v-model="hideNames"
-      label="Hide note names"
-      :ui="{
-        root: 'flex-row-reverse items-center justify-between',
-        label: 'font-mono text-[11px] font-normal text-muted'
-      }"
-    />
-
-    <USwitch
-      v-model="whiteRootsOnly"
-      label="White-key roots only"
-      :ui="{
-        root: 'flex-row-reverse items-center justify-between',
-        label: 'font-mono text-[11px] font-normal text-muted'
-      }"
-    />
+    <USwitch v-model="hideNames" label="Hide note names" :ui="SWITCH_UI" />
+    <USwitch v-model="whiteRootsOnly" label="White-key roots only" :ui="SWITCH_UI" />
 
     <p class="font-mono text-[10px] leading-relaxed text-dimmed">
       Press <UKbd value="space" size="sm" /> to skip to the next chord.

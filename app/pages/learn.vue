@@ -17,7 +17,7 @@ const rootItems = computed(() =>
 const QUALITIES = [
   { label: 'Major', value: 'major' },
   { label: 'Minor', value: 'minor' }
-]
+] as const
 
 const LESSONS = [
   { value: 'shapes', label: 'Shapes' },
@@ -44,9 +44,6 @@ function playNotes(notes: number[]) {
   notes.forEach((note, index) => setTimeout(() => play(note), index * 140))
 }
 
-function setQuality(value: unknown) {
-  if (value) quality.value = value as Quality
-}
 </script>
 
 <template>
@@ -69,33 +66,49 @@ function setQuality(value: unknown) {
     />
 
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-default bg-elevated px-3 py-2.5">
-      <URadioGroup
+      <!-- A field group is deliberately non-wrapping so its segments stay
+           joined, and twelve roots are wider than a phone. Scroll the control
+           rather than the page. -->
+      <UFieldGroup
         v-if="needsRoot"
-        :model-value="root"
-        :items="rootItems"
-        orientation="horizontal"
-        variant="card"
-        indicator="hidden"
-        :ui="{ ...SEGMENT_UI, fieldset: 'flex-wrap gap-1', item: 'items-center justify-center px-2 py-1' }"
+        size="xs"
         aria-label="Root"
-        @update:model-value="root = Number($event)"
-      />
+        class="max-w-full overflow-x-auto"
+      >
+        <UButton
+          v-for="item in rootItems"
+          :key="item.value"
+          :label="item.label"
+          :active="root === item.value"
+          color="neutral"
+          variant="outline"
+          active-color="primary"
+          active-variant="soft"
+          :aria-pressed="root === item.value"
+          class="justify-center font-mono text-[11px]"
+          @click="root = item.value"
+        />
+      </UFieldGroup>
 
       <span v-else class="font-mono text-[11px] text-muted">
         All twelve roots
       </span>
 
-      <URadioGroup
-        :model-value="quality"
-        :items="QUALITIES"
-        orientation="horizontal"
-        variant="card"
-        indicator="hidden"
-        :ui="{ ...SEGMENT_UI, fieldset: 'w-auto gap-1' }"
-        aria-label="Quality"
-        class="ms-auto"
-        @update:model-value="setQuality"
-      />
+      <UFieldGroup size="xs" class="ms-auto" aria-label="Quality">
+        <UButton
+          v-for="option in QUALITIES"
+          :key="option.value"
+          :label="option.label"
+          :active="quality === option.value"
+          color="neutral"
+          variant="outline"
+          active-color="primary"
+          active-variant="soft"
+          :aria-pressed="quality === option.value"
+          class="justify-center font-mono text-[11px]"
+          @click="quality = option.value"
+        />
+      </UFieldGroup>
     </div>
 
     <LessonShapes v-if="lesson === 'shapes'" :quality="quality" @play="playNotes" />

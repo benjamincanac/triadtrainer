@@ -16,6 +16,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@iconify-json/lucide": "^1.2.123",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/ui": "^4.10.0",
     "nuxt": "^4.5.2",
@@ -23,10 +24,10 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.17.0",
-    "eslint": "^10.7.0",
+    "eslint": "^10.8.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.9"
   },
-  "packageManager": "pnpm@10.33.4"
+  "packageManager": "pnpm@11.21.0"
 }
