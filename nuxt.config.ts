@@ -16,7 +16,7 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'en', class: 'dark' },
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-      title: 'Subito · triad trainer',
+      title: 'Triad trainer',
       meta: [
         { name: 'theme-color', content: '#16130F' },
         { name: 'color-scheme', content: 'dark' },

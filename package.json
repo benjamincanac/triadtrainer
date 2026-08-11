@@ -1,5 +1,5 @@
 {
-  "name": "subito",
+  "name": "triadtrainer",
   "private": true,
   "type": "module",
   "description": "Triad trainer for a USB MIDI keyboard. Names a chord, you play it, it times you.",

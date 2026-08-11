@@ -2,7 +2,8 @@ import { ref, watch } from 'vue'
 import { readStored, writeStored } from './useStorage'
 import { DEFAULT_ACCIDENTALS, type Accidentals, type QualityFilter } from './useTheory'
 
-const STORAGE_KEY = 'subito.settings.v1'
+const STORAGE_KEY = 'triadtrainer.settings.v1'
+const LEGACY_STORAGE_KEY = 'subito.settings.v1'
 
 export interface Settings {
   /** Which triads the drill draws from. */
@@ -44,7 +45,7 @@ export function useSettings() {
   // Read on the client only, so SSR renders the defaults and hydration matches.
   if (import.meta.client && !initialized) {
     initialized = true
-    settings.value = sanitize(readStored<Partial<Settings> | null>(STORAGE_KEY, null))
+    settings.value = sanitize(readStored<Partial<Settings> | null>(STORAGE_KEY, null, LEGACY_STORAGE_KEY))
     watch(settings, value => writeStored(STORAGE_KEY, value), { deep: true })
   }
 

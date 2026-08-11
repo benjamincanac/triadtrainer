@@ -7,8 +7,10 @@ import type { Chord, Quality } from './useTheory'
  * displayed and stops at validation, right or wrong — a wrong answer retries the
  * same chord, so both halves of "how long did that actually take me" are counted.
  */
-const ATTEMPTS_KEY = 'subito.attempts.v1'
-const SESSIONS_KEY = 'subito.sessions.v1'
+const ATTEMPTS_KEY = 'triadtrainer.attempts.v1'
+const SESSIONS_KEY = 'triadtrainer.sessions.v1'
+const LEGACY_ATTEMPTS_KEY = 'subito.attempts.v1'
+const LEGACY_SESSIONS_KEY = 'subito.sessions.v1'
 
 /** Enough recent detail for the rolling numbers without unbounded growth. */
 const MAX_ATTEMPTS = 500
@@ -76,8 +78,8 @@ function withLastAt(session: SessionSummary): SessionSummary {
 export function useStats() {
   if (import.meta.client && !initialized) {
     initialized = true
-    attempts.value = readStored<unknown[]>(ATTEMPTS_KEY, []).filter(isAttempt)
-    sessions.value = readStored<unknown[]>(SESSIONS_KEY, []).filter(isSession).map(withLastAt)
+    attempts.value = readStored<unknown[]>(ATTEMPTS_KEY, [], LEGACY_ATTEMPTS_KEY).filter(isAttempt)
+    sessions.value = readStored<unknown[]>(SESSIONS_KEY, [], LEGACY_SESSIONS_KEY).filter(isSession).map(withLastAt)
 
     // Resume the last session if it's still warm, so a reload doesn't fragment
     // one practice run into several points on the curve.

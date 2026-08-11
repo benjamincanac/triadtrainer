@@ -1,8 +1,8 @@
-# Subito
+# Triad trainer
 
 A personal drill for major and minor triads on a MIDI keyboard. The app names a chord, you play it,
-it validates and times you. Reaction time is the metric worth watching, not the score, which is what
-the name is about: the goal is not working the chord out, it is knowing it immediately.
+it validates and times you. Reaction time is the metric worth watching, not the score: the goal is
+not working the chord out, it is knowing it immediately.
 
 **Learn** covers the same 24 chords three ways: the four hand shapes they sort into, the three
 inversions, and the scale each one comes from.

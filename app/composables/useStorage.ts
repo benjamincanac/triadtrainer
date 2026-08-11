@@ -2,10 +2,12 @@
  * localStorage that never throws. Private windows, disabled storage and quota
  * errors all just degrade to an in-memory session.
  */
-export function readStored<T>(key: string, fallback: T): T {
+export function readStored<T>(key: string, fallback: T, legacyKey?: string): T {
   if (typeof window === 'undefined') return fallback
   try {
-    const raw = window.localStorage.getItem(key)
+    // The app was briefly called Subito. Fall back to the old key so practice
+    // history survives the rename, and rewrite it under the new one.
+    const raw = window.localStorage.getItem(key) ?? (legacyKey ? window.localStorage.getItem(legacyKey) : null)
     if (!raw) return fallback
     return JSON.parse(raw) as T
   } catch {

@@ -9,13 +9,13 @@ const links = [
   <div class="min-h-dvh bg-shell">
     <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header class="flex items-center justify-between gap-4 border-b border-etch pb-4">
-        <!-- The name is itself an expression marking, so it gets the same serif
-             italic as the chord prompt, three sizes down so it stays a wordmark
-             and doesn't compete with it. -->
-        <h1 class="flex items-baseline gap-2.5">
-          <span class="font-serif text-lg italic text-ivory">Subito</span>
-          <span class="font-mono text-[10px] tracking-[0.18em] text-legend uppercase">
-            triad trainer
+        <!-- Silkscreened gear label, not a logotype. Serif italic is reserved
+             for the chord prompt, which is the one thing meant to be read from
+             across the room. -->
+        <h1 class="flex items-center gap-2.5">
+          <TrainerMark class="h-5 w-5 shrink-0" />
+          <span class="font-mono text-[11px] tracking-[0.25em] text-legend uppercase">
+            Triad trainer
           </span>
         </h1>
 
