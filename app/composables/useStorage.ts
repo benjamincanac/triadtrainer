@@ -5,11 +5,18 @@
 export function readStored<T>(key: string, fallback: T, legacyKey?: string): T {
   if (typeof window === 'undefined') return fallback
   try {
-    // The app was briefly called Subito. Fall back to the old key so practice
-    // history survives the rename, and rewrite it under the new one.
-    const raw = window.localStorage.getItem(key) ?? (legacyKey ? window.localStorage.getItem(legacyKey) : null)
-    if (!raw) return fallback
-    return JSON.parse(raw) as T
+    const raw = window.localStorage.getItem(key)
+    if (raw) return JSON.parse(raw) as T
+
+    if (!legacyKey) return fallback
+    const legacy = window.localStorage.getItem(legacyKey)
+    if (!legacy) return fallback
+
+    // The app was briefly called Subito. Carry that history over on first read
+    // and drop the old key, so it doesn't stay load-bearing indefinitely.
+    window.localStorage.setItem(key, legacy)
+    window.localStorage.removeItem(legacyKey)
+    return JSON.parse(legacy) as T
   } catch {
     return fallback
   }
