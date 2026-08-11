@@ -29,18 +29,17 @@ export const PITCH_CLASS_COUNT = 12
 export const MAJOR_INTERVALS = [0, 4, 7] as const
 export const MINOR_INTERVALS = [0, 3, 7] as const
 
-/**
- * Root names indexed by pitch class, used for the chord prompt. Accidentals are
- * spelled the way a chord chart would: flats, except F#.
- */
-export const ROOT_NAMES = [
+/** How the five black keys are spelled. A preference, not a fact. */
+export type Accidentals = 'flats' | 'sharps'
+
+export const FLAT_NAMES = [
   'C',
   'Db',
   'D',
   'Eb',
   'E',
   'F',
-  'F#',
+  'Gb',
   'G',
   'Ab',
   'A',
@@ -48,25 +47,32 @@ export const ROOT_NAMES = [
   'B'
 ] as const
 
-/**
- * Short names for the key caps. A key has no chord context, so the black keys
- * are spelled the way you'd point at them on the instrument — which is why
- * index 1 reads `C#` here but `Db` in ROOT_NAMES.
- */
-export const KEY_NAMES = [
+export const SHARP_NAMES = [
   'C',
   'C#',
   'D',
-  'Eb',
+  'D#',
   'E',
   'F',
   'F#',
   'G',
-  'Ab',
+  'G#',
   'A',
-  'Bb',
+  'A#',
   'B'
 ] as const
+
+export const DEFAULT_ACCIDENTALS: Accidentals = 'sharps'
+
+/**
+ * The name of a pitch class in the chosen spelling. One table drives both the
+ * chord prompt and the key caps, so a key never reads C# while its chord reads
+ * Db.
+ */
+export function noteName(pitchClass: PitchClass, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
+  const table = accidentals === 'sharps' ? SHARP_NAMES : FLAT_NAMES
+  return table[normalize(pitchClass)]!
+}
 
 /** Pitch classes that fall on a white key. Beginner mode draws roots from here. */
 export const WHITE_ROOTS: readonly PitchClass[] = [0, 2, 4, 5, 7, 9, 11]
@@ -102,14 +108,9 @@ export function chordPitchClasses(chord: Chord): PitchClass[] {
   return triad(chord.root, chord.quality)
 }
 
-/** `C major`, `Ab minor`. */
-export function chordLabel(chord: Chord): string {
-  return `${ROOT_NAMES[normalize(chord.root)]} ${chord.quality}`
-}
-
-/** The key-cap name for a pitch class. */
-export function keyName(pitchClass: PitchClass): string {
-  return KEY_NAMES[normalize(pitchClass)]!
+/** `C major`, `G# minor`. */
+export function chordLabel(chord: Chord, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
+  return `${noteName(chord.root, accidentals)} ${chord.quality}`
 }
 
 /**

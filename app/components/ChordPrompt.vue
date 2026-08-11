@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSettings } from '~/composables/useSettings'
 import { chordLabel, type Chord } from '~/composables/useTheory'
 import type { Phase } from '~/composables/useTrainer'
 
@@ -7,6 +8,8 @@ defineProps<{
   phase: Phase
   verdict: string
 }>()
+
+const { settings } = useSettings()
 </script>
 
 <template>
@@ -23,7 +26,7 @@ defineProps<{
         'text-bad': phase === 'wrong'
       }"
     >
-      {{ chord ? chordLabel(chord) : '—' }}
+      {{ chord ? chordLabel(chord, settings.accidentals) : '—' }}
     </p>
 
     <!-- The lamps carry the verdict visually; this is the same information for

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { chordLabel, inversions, keyName, toPitchClass, type Chord } from '~/composables/useTheory'
+import { useSettings } from '~/composables/useSettings'
+import { chordLabel, inversions, noteName, toPitchClass, type Chord } from '~/composables/useTheory'
 
 const props = defineProps<{ chord: Chord }>()
 const emit = defineEmits<{ play: [notes: number[]] }>()
+
+const { settings } = useSettings()
 
 const COPY = {
   root: 'Root position — the root is at the bottom and the chord is stacked in thirds.',
@@ -15,28 +18,23 @@ const voicings = computed(() =>
   inversions(props.chord, 60).map(inversion => ({
     ...inversion,
     blurb: COPY[inversion.name],
-    names: inversion.notes.map(note => keyName(toPitchClass(note)))
+    names: inversion.notes.map(note => noteName(toPitchClass(note), settings.value.accidentals))
   }))
 )
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <header class="flex flex-col gap-1">
-      <h2 class="font-serif text-2xl italic text-ivory">
-        The three inversions
-      </h2>
-      <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
-        Same three notes, three stacking orders. The drill accepts all of them, because
-        {{ chordLabel(chord) }} is a set of pitch classes, not a fingering.
-      </p>
-    </header>
+  <section class="flex flex-col gap-3">
+    <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+      Same three notes, three stacking orders. The drill accepts all of them, because
+      {{ chordLabel(chord, settings.accidentals) }} is a set of pitch classes, not a fingering.
+    </p>
 
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-2.5">
       <article
         v-for="voicing in voicings"
         :key="voicing.name"
-        class="grid gap-3 rounded-lg border border-etch bg-panel p-4 sm:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] sm:items-center"
+        class="grid gap-2.5 rounded-lg border border-etch bg-panel p-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:items-center"
       >
         <div class="flex flex-col gap-1">
           <div class="flex items-baseline gap-2">
@@ -58,7 +56,7 @@ const voicings = computed(() =>
         <button
           type="button"
           class="cursor-pointer rounded"
-          :aria-label="`Play ${chordLabel(chord)} in ${voicing.name} position`"
+          :aria-label="`Play ${chordLabel(chord, settings.accidentals)} in ${voicing.name} position`"
           @click="emit('play', voicing.notes)"
         >
           <!-- 28 semitones from C4 reaches MIDI 87, the top note of the highest

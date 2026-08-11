@@ -6,19 +6,20 @@ import {
   chordPool,
   inversions,
   isBlackKey,
-  KEY_NAMES,
-  keyName,
+  DEFAULT_ACCIDENTALS,
+  FLAT_NAMES,
   matchesTriad,
   normalize,
   pickChord,
   pitchClassSet,
-  ROOT_NAMES,
+  noteName,
   rootsInFamily,
   sameChord,
   sameSet,
   scale,
   scaleNotes,
   shapeFamily,
+  SHARP_NAMES,
   toPitchClass,
   triad,
   triadShape,
@@ -74,15 +75,32 @@ function invert(notes: number[], times: number): number[] {
 }
 
 describe('name tables', () => {
-  it('lists the twelve root names in pitch class order', () => {
-    expect([...ROOT_NAMES]).toEqual([
+  it('lists the twelve sharp names in pitch class order', () => {
+    expect([...SHARP_NAMES]).toEqual([
+      'C',
+      'C#',
+      'D',
+      'D#',
+      'E',
+      'F',
+      'F#',
+      'G',
+      'G#',
+      'A',
+      'A#',
+      'B'
+    ])
+  })
+
+  it('lists the twelve flat names in pitch class order', () => {
+    expect([...FLAT_NAMES]).toEqual([
       'C',
       'Db',
       'D',
       'Eb',
       'E',
       'F',
-      'F#',
+      'Gb',
       'G',
       'Ab',
       'A',
@@ -91,39 +109,38 @@ describe('name tables', () => {
     ])
   })
 
-  it('lists the twelve short key names in pitch class order', () => {
-    expect([...KEY_NAMES]).toEqual([
-      'C',
-      'C#',
-      'D',
-      'Eb',
-      'E',
-      'F',
-      'F#',
-      'G',
-      'Ab',
-      'A',
-      'Bb',
-      'B'
-    ])
+  it('agrees on the seven white keys and differs on the five black ones', () => {
+    for (const pitchClass of WHITE_ROOTS) {
+      expect(SHARP_NAMES[pitchClass]).toBe(FLAT_NAMES[pitchClass])
+    }
+    for (const pitchClass of [1, 3, 6, 8, 10]) {
+      expect(SHARP_NAMES[pitchClass]).not.toBe(FLAT_NAMES[pitchClass])
+      expect(SHARP_NAMES[pitchClass]).toContain('#')
+      expect(FLAT_NAMES[pitchClass]).toContain('b')
+    }
   })
 
-  it('spells the C sharp key as a sharp and the Db root as a flat', () => {
-    expect(KEY_NAMES[1]).toBe('C#')
-    expect(ROOT_NAMES[1]).toBe('Db')
+  it('defaults to sharps', () => {
+    expect(DEFAULT_ACCIDENTALS).toBe('sharps')
+    expect(noteName(1)).toBe('C#')
+    expect(noteName(6)).toBe('F#')
   })
 
-  it('names keys by pitch class, wrapping octaves', () => {
-    expect(keyName(0)).toBe('C')
-    expect(keyName(6)).toBe('F#')
-    expect(keyName(12)).toBe('C')
-    expect(keyName(61)).toBe('C#')
+  it('names notes by pitch class in either spelling, wrapping octaves', () => {
+    expect(noteName(0, 'sharps')).toBe('C')
+    expect(noteName(12, 'sharps')).toBe('C')
+    expect(noteName(61, 'sharps')).toBe('C#')
+    expect(noteName(61, 'flats')).toBe('Db')
+    expect(noteName(6, 'sharps')).toBe('F#')
+    expect(noteName(6, 'flats')).toBe('Gb')
   })
 
-  it('labels chords by root and quality', () => {
+  it('labels chords by root and quality in either spelling', () => {
     expect(chordLabel({ root: 0, quality: 'major' })).toBe('C major')
-    expect(chordLabel({ root: 8, quality: 'minor' })).toBe('Ab minor')
-    expect(chordLabel({ root: 6, quality: 'major' })).toBe('F# major')
+    expect(chordLabel({ root: 8, quality: 'minor' }, 'sharps')).toBe('G# minor')
+    expect(chordLabel({ root: 8, quality: 'minor' }, 'flats')).toBe('Ab minor')
+    expect(chordLabel({ root: 6, quality: 'major' }, 'sharps')).toBe('F# major')
+    expect(chordLabel({ root: 6, quality: 'major' }, 'flats')).toBe('Gb major')
     expect(chordLabel({ root: 11, quality: 'minor' })).toBe('B minor')
   })
 })
@@ -292,13 +309,13 @@ describe('chordPool', () => {
 })
 
 describe('shape families', () => {
-  const names = (roots: number[]) => roots.map(root => ROOT_NAMES[root])
+  const names = (roots: number[]) => roots.map(root => noteName(root, 'sharps'))
 
   it('sorts the twelve major triads into the four hand shapes', () => {
     expect(names(rootsInFamily('WWW', 'major'))).toEqual(['C', 'F', 'G'])
     expect(names(rootsInFamily('WBW', 'major'))).toEqual(['D', 'E', 'A'])
-    expect(names(rootsInFamily('BWB', 'major'))).toEqual(['Db', 'Eb', 'Ab'])
-    expect(names(rootsInFamily('irregular', 'major'))).toEqual(['F#', 'Bb', 'B'])
+    expect(names(rootsInFamily('BWB', 'major'))).toEqual(['C#', 'D#', 'G#'])
+    expect(names(rootsInFamily('irregular', 'major'))).toEqual(['F#', 'A#', 'B'])
   })
 
   it('covers all twelve roots exactly once per quality', () => {

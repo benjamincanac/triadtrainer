@@ -24,6 +24,18 @@ const quality = computed({
   }
 })
 
+const ACCIDENTALS = [
+  { value: 'sharps', label: 'C#' },
+  { value: 'flats', label: 'Db' }
+] as const
+
+const accidentals = computed({
+  get: () => settings.value.accidentals,
+  set: (value: Settings['accidentals'] | null) => {
+    if (value) settings.value = { ...settings.value, accidentals: value }
+  }
+})
+
 const hideNames = computed({
   get: () => settings.value.hideNames,
   set: (value: boolean) => {
@@ -50,6 +62,20 @@ const whiteRootsOnly = computed({
       <ToggleGroup v-model="quality" type="single" variant="outline" class="w-full">
         <ToggleGroupItem
           v-for="option in QUALITIES"
+          :key="option.value"
+          :value="option.value"
+          class="flex-1 font-mono text-xs data-[state=on]:border-lamp/40 data-[state=on]:bg-lamp/15 data-[state=on]:text-lamp"
+        >
+          {{ option.label }}
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <span class="font-mono text-[11px] text-legend">Accidentals</span>
+      <ToggleGroup v-model="accidentals" type="single" variant="outline" class="w-full">
+        <ToggleGroupItem
+          v-for="option in ACCIDENTALS"
           :key="option.value"
           :value="option.value"
           class="flex-1 font-mono text-xs data-[state=on]:border-lamp/40 data-[state=on]:bg-lamp/15 data-[state=on]:text-lamp"

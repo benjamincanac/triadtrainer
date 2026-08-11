@@ -7,7 +7,7 @@ const links = [
 
 <template>
   <div class="min-h-dvh bg-shell">
-    <main class="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">
+    <main class="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header class="flex items-center justify-between gap-4 border-b border-etch pb-4">
         <!-- The name is itself an expression marking, so it gets the same serif
              italic as the chord prompt, three sizes down so it stays a wordmark

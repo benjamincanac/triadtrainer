@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useSettings } from '~/composables/useSettings'
 import {
   chordLabel,
   chordPitchClasses,
-  keyName,
-  ROOT_NAMES,
+  noteName,
   rootsInFamily,
   SHAPE_FAMILIES,
   triad,
@@ -14,6 +14,8 @@ import {
 
 const props = defineProps<{ quality: Quality }>()
 const emit = defineEmits<{ play: [notes: number[]] }>()
+
+const { settings } = useSettings()
 
 const COPY: Record<ShapeFamily, { title: string, blurb: string }> = {
   WWW: {
@@ -42,11 +44,11 @@ const families = computed(() =>
       family,
       ...COPY[family],
       roots,
-      // Chord roots, so they follow the chord spelling (Db), not the key cap (C#).
-      rootNames: roots.map(root => ROOT_NAMES[root]),
+      rootNames: roots.map(root => noteName(root, settings.value.accidentals)),
       example: { root: example, quality: props.quality },
       exampleNotes: triad(example, props.quality),
-      exampleNames: chordPitchClasses({ root: example, quality: props.quality }).map(keyName)
+      exampleNames: chordPitchClasses({ root: example, quality: props.quality })
+        .map(pitchClass => noteName(pitchClass, settings.value.accidentals))
     }
   })
 )
@@ -59,22 +61,17 @@ function play(root: number) {
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <header class="flex flex-col gap-1">
-      <h2 class="font-serif text-2xl italic text-ivory">
-        Four hand shapes
-      </h2>
-      <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
-        Nine of the twelve {{ quality }} triads are the same gesture moved around the keyboard.
-        Learn the four groups instead of twelve chords. Tap a diagram to hear it.
-      </p>
-    </header>
+  <section class="flex flex-col gap-3">
+    <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+      Nine of the twelve {{ quality }} triads are the same gesture moved around the keyboard.
+      Learn the four groups instead of twelve chords. Tap a diagram to hear it.
+    </p>
 
-    <div class="grid gap-3 sm:grid-cols-2">
+    <div class="grid gap-2.5 sm:grid-cols-2">
       <article
         v-for="group in families"
         :key="group.family"
-        class="flex flex-col gap-3 rounded-lg border border-etch bg-panel p-4"
+        class="flex flex-col gap-2 rounded-lg border border-etch bg-panel p-3"
       >
         <div class="flex items-baseline justify-between gap-2">
           <h3 class="font-mono text-xs tracking-wide text-ivory">
@@ -88,7 +85,7 @@ function play(root: number) {
         <button
           type="button"
           class="cursor-pointer rounded"
-          :aria-label="`Play ${chordLabel(group.example)}`"
+          :aria-label="`Play ${chordLabel(group.example, settings.accidentals)}`"
           @click="play(group.example.root)"
         >
           <!-- Exactly one octave, so the root lights once and the shape reads
@@ -108,7 +105,7 @@ function play(root: number) {
         </p>
 
         <p class="font-mono text-[10px] text-legend/70">
-          e.g. {{ chordLabel(group.example) }} = {{ group.exampleNames.join(' ') }}
+          e.g. {{ chordLabel(group.example, settings.accidentals) }} = {{ group.exampleNames.join(' ') }}
         </p>
       </article>
     </div>

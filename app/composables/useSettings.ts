@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 import { readStored, writeStored } from './useStorage'
-import type { QualityFilter } from './useTheory'
+import { DEFAULT_ACCIDENTALS, type Accidentals, type QualityFilter } from './useTheory'
 
 const STORAGE_KEY = 'subito.settings.v1'
 
@@ -11,12 +11,15 @@ export interface Settings {
   hideNames: boolean
   /** Beginner mode: roots on white keys only. */
   whiteRootsOnly: boolean
+  /** How black keys are spelled, in the prompt and on the key caps alike. */
+  accidentals: Accidentals
 }
 
 const DEFAULTS: Settings = {
   quality: 'both',
   hideNames: false,
-  whiteRootsOnly: false
+  whiteRootsOnly: false,
+  accidentals: DEFAULT_ACCIDENTALS
 }
 
 // App-lifetime singleton so the settings panel and the drill share one object.
@@ -30,7 +33,10 @@ function sanitize(value: Partial<Settings> | null): Settings {
       ? value.quality
       : DEFAULTS.quality,
     hideNames: typeof value.hideNames === 'boolean' ? value.hideNames : DEFAULTS.hideNames,
-    whiteRootsOnly: typeof value.whiteRootsOnly === 'boolean' ? value.whiteRootsOnly : DEFAULTS.whiteRootsOnly
+    whiteRootsOnly: typeof value.whiteRootsOnly === 'boolean' ? value.whiteRootsOnly : DEFAULTS.whiteRootsOnly,
+    accidentals: value.accidentals === 'flats' || value.accidentals === 'sharps'
+      ? value.accidentals
+      : DEFAULTS.accidentals
   }
 }
 

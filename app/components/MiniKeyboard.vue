@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { keyboardLayout } from '~/composables/useKeyboardLayout'
-import { keyName, toPitchClass } from '~/composables/useTheory'
+import { useSettings } from '~/composables/useSettings'
+import { noteName, toPitchClass } from '~/composables/useTheory'
 
 const props = withDefaults(defineProps<{
   /** MIDI notes to light up. */
@@ -32,6 +33,8 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{ press: [midiNote: number] }>()
 
+const { settings } = useSettings()
+
 const layout = computed(() => keyboardLayout(props.startNote, props.semitones))
 
 const lit = computed(() =>
@@ -52,7 +55,7 @@ function key(note: number) {
     // A root only counts when it's actually in the voicing. Callers pass every
     // octave of the root, and the inversion that omits one must not light it.
     root: on && litRoots.value.has(probe),
-    name: keyName(toPitchClass(note)),
+    name: noteName(toPitchClass(note), settings.value.accidentals),
     octave: Math.floor(note / 12) - 1
   }
 }

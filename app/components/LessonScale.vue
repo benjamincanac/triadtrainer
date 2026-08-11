@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useSettings } from '~/composables/useSettings'
 import {
   chordLabel,
   chordPitchClasses,
-  keyName,
-  ROOT_NAMES,
+  noteName,
   scale,
   scaleNotes,
   TRIAD_DEGREES,
@@ -14,6 +14,8 @@ import {
 const props = defineProps<{ chord: Chord }>()
 const emit = defineEmits<{ play: [notes: number[]] }>()
 
+const { settings } = useSettings()
+
 const notes = computed(() => scaleNotes(props.chord.root, props.chord.quality, 60))
 
 const degrees = computed(() => {
@@ -22,7 +24,7 @@ const degrees = computed(() => {
   return pitchClasses.map((pitchClass, index) => ({
     degree: index + 1,
     pitchClass,
-    name: keyName(pitchClass),
+    name: noteName(pitchClass, settings.value.accidentals),
     inChord: chordTones.has(pitchClass)
   }))
 })
@@ -36,21 +38,16 @@ const relative = computed<Chord>(() =>
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <header class="flex flex-col gap-1">
-      <h2 class="font-serif text-2xl italic text-ivory">
-        The scale underneath
-      </h2>
-      <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
-        The triad is degrees 1, 3 and 5 of its scale. Seeing where the chord sits in the
-        seven notes is what makes it findable without counting semitones.
-      </p>
-    </header>
+  <section class="flex flex-col gap-3">
+    <p class="max-w-prose font-sans text-xs leading-relaxed text-legend">
+      The triad is degrees 1, 3 and 5 of its scale. Seeing where the chord sits in the
+      seven notes is what makes it findable without counting semitones.
+    </p>
 
-    <div class="flex flex-col gap-4 rounded-lg border border-etch bg-panel p-4">
+    <div class="flex flex-col gap-3 rounded-lg border border-etch bg-panel p-3">
       <div class="flex items-baseline justify-between gap-2">
         <h3 class="font-mono text-xs text-ivory">
-          {{ ROOT_NAMES[chord.root] }} {{ chord.quality }} scale
+          {{ noteName(chord.root, settings.accidentals) }} {{ chord.quality }} scale
         </h3>
         <button
           type="button"
@@ -90,8 +87,8 @@ const relative = computed<Chord>(() =>
       </ol>
 
       <p class="font-sans text-[11px] leading-relaxed text-legend">
-        Degrees {{ TRIAD_DEGREES.join(', ') }} highlighted make {{ chordLabel(chord) }}.
-        The same seven notes spell {{ chordLabel(relative) }}, its relative
+        Degrees {{ TRIAD_DEGREES.join(', ') }} highlighted make {{ chordLabel(chord, settings.accidentals) }}.
+        The same seven notes spell {{ chordLabel(relative, settings.accidentals) }}, its relative
         {{ relative.quality }}.
       </p>
     </div>
