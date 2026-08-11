@@ -15,6 +15,11 @@ const ACCIDENTALS = [
   { label: 'Db', value: 'flats' }
 ]
 
+const ORDERS = [
+  { label: 'Random', value: 'random' },
+  { label: 'In order', value: 'sequential' }
+]
+
 function field<K extends keyof Settings>(key: K) {
   return computed({
     get: () => settings.value[key],
@@ -26,6 +31,7 @@ function field<K extends keyof Settings>(key: K) {
 
 const quality = field('quality')
 const accidentals = field('accidentals')
+const order = field('order')
 const hideNames = field('hideNames')
 const whiteRootsOnly = field('whiteRootsOnly')
 
@@ -52,6 +58,17 @@ const SWITCH_UI = {
       v-model="quality"
       :items="QUALITIES"
       legend="Chord types"
+      orientation="horizontal"
+      :ui="RADIO_UI"
+      variant="card"
+      size="xs"
+      indicator="hidden"
+    />
+
+    <URadioGroup
+      v-model="order"
+      :items="ORDERS"
+      legend="Chord order"
       orientation="horizontal"
       :ui="RADIO_UI"
       variant="card"

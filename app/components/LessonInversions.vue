@@ -18,7 +18,12 @@ const voicings = computed(() =>
   inversions(props.chord, 60).map(inversion => ({
     ...inversion,
     blurb: COPY[inversion.name],
-    names: inversion.notes.map(note => noteName(toPitchClass(note), settings.value.accidentals))
+    names: inversion.notes.map(note => noteName(toPitchClass(note), settings.value.accidentals)),
+    // Keyed by MIDI note so the diagram can print them on the right keys.
+    fingers: Object.fromEntries(inversion.notes.map((note, i) => [note, {
+      right: inversion.fingering.right[i]!,
+      left: inversion.fingering.left[i]!
+    }]))
   }))
 )
 </script>
@@ -28,6 +33,8 @@ const voicings = computed(() =>
     <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
       Same three notes, three stacking orders. The drill accepts all of them, because
       {{ chordLabel(chord, settings.accidentals) }} is a set of pitch classes, not a fingering.
+      Numbers on the keys are fingers, <span class="text-highlighted">right hand on top</span>,
+      left hand below. Thumb is 1.
     </p>
 
     <div class="flex flex-col gap-2.5">
@@ -48,6 +55,11 @@ const voicings = computed(() =>
           <p class="font-mono text-[11px] text-primary">
             {{ voicing.names.join(' ') }}
           </p>
+          <p class="font-mono text-[10px] text-muted">
+            <span class="text-highlighted">R {{ voicing.fingering.right.join('-') }}</span>
+            <span class="px-1 opacity-40">·</span>
+            <span>L {{ voicing.fingering.left.join('-') }}</span>
+          </p>
           <p class="font-sans text-[11px] leading-relaxed text-muted">
             {{ voicing.blurb }}
           </p>
@@ -66,6 +78,7 @@ const voicings = computed(() =>
             :roots="[60 + chord.root, 72 + chord.root]"
             :semitones="28"
             :labels="false"
+            :fingers="voicing.fingers"
             height="h-16"
           />
         </button>

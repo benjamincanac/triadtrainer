@@ -2,6 +2,9 @@ import { ref, watch } from 'vue'
 import { readStored, writeStored } from './useStorage'
 import { DEFAULT_ACCIDENTALS, type Accidentals, type QualityFilter } from './useTheory'
 
+/** Random keeps you honest; ordered is for first learning the shapes. */
+export type DrillOrder = 'random' | 'sequential'
+
 const STORAGE_KEY = 'triadtrainer.settings.v1'
 const LEGACY_STORAGE_KEY = 'subito.settings.v1'
 
@@ -14,13 +17,16 @@ export interface Settings {
   whiteRootsOnly: boolean
   /** How black keys are spelled, in the prompt and on the key caps alike. */
   accidentals: Accidentals
+  /** Draw chords at random, or walk the pool in order. */
+  order: DrillOrder
 }
 
 const DEFAULTS: Settings = {
   quality: 'both',
   hideNames: false,
   whiteRootsOnly: false,
-  accidentals: DEFAULT_ACCIDENTALS
+  accidentals: DEFAULT_ACCIDENTALS,
+  order: 'random'
 }
 
 // App-lifetime singleton so the settings panel and the drill share one object.
@@ -37,7 +43,10 @@ function sanitize(value: Partial<Settings> | null): Settings {
     whiteRootsOnly: typeof value.whiteRootsOnly === 'boolean' ? value.whiteRootsOnly : DEFAULTS.whiteRootsOnly,
     accidentals: value.accidentals === 'flats' || value.accidentals === 'sharps'
       ? value.accidentals
-      : DEFAULTS.accidentals
+      : DEFAULTS.accidentals,
+    order: value.order === 'random' || value.order === 'sequential'
+      ? value.order
+      : DEFAULTS.order
   }
 }
 

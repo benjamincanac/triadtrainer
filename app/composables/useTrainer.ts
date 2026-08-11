@@ -96,7 +96,21 @@ export function useTrainer() {
 
   function next() {
     clearTimer()
-    current.value = pickChord(pool.value, current.value)
+
+    if (settings.value.order === 'sequential') {
+      const list = pool.value
+      if (list.length === 0) {
+        current.value = null
+      } else {
+        // Resume from wherever the current chord sits, so switching to ordered
+        // mode mid-session carries on rather than jumping back to C.
+        const at = current.value ? list.findIndex(chord => sameChord(chord, current.value)) : -1
+        current.value = list[(at + 1) % list.length]!
+      }
+    } else {
+      current.value = pickChord(pool.value, current.value)
+    }
+
     rearm()
   }
 

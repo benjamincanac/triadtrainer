@@ -142,11 +142,15 @@ export function matchesTriad(notes: Iterable<number>, chord: Chord): boolean {
   return sameSet(notes, chordPitchClasses(chord))
 }
 
-/** All 24 triads, C major through B minor. */
+/**
+ * All 24 triads, chromatically by root and major before minor: C, Cm, C#, C#m
+ * and so on. Ordered practice walks this list, and hearing a root's major and
+ * minor back to back is what makes the third audible.
+ */
 export function allChords(): Chord[] {
   const chords: Chord[] = []
-  for (const quality of ['major', 'minor'] as const) {
-    for (let root = 0; root < PITCH_CLASS_COUNT; root++) {
+  for (let root = 0; root < PITCH_CLASS_COUNT; root++) {
+    for (const quality of ['major', 'minor'] as const) {
       chords.push({ root, quality })
     }
   }
@@ -207,12 +211,38 @@ export type InversionName = 'root' | 'first' | 'second'
 
 export const INVERSION_NAMES: InversionName[] = ['root', 'first', 'second']
 
+/** Finger numbers, thumb = 1, little finger = 5, given low note to high note. */
+export interface Fingering {
+  right: number[]
+  left: number[]
+}
+
+/**
+ * Every inversion holds a third and a fourth. The fourth is the wider reach, so
+ * it has to land on the widest gap the hand has: thumb to index going up on the
+ * right, index to thumb going up on the left. That gives one exception per hand
+ * and 1-3-5 / 5-3-1 everywhere else.
+ */
+export const FINGERINGS: Record<InversionName, Fingering> = {
+  root: { right: [1, 3, 5], left: [5, 3, 1] },
+  // E G C: the fourth is on top.
+  first: { right: [1, 2, 5], left: [5, 3, 1] },
+  // G C E: the fourth is at the bottom.
+  second: { right: [1, 3, 5], left: [5, 2, 1] }
+}
+
+export function fingering(name: InversionName): Fingering {
+  return FINGERINGS[name]
+}
+
 export interface Inversion {
   name: InversionName
   /** Ascending MIDI notes. */
   notes: number[]
   /** Which chord tone is at the bottom. */
   bass: 'root' | 'third' | 'fifth'
+  /** Finger numbers aligned with `notes`. */
+  fingering: Fingering
 }
 
 /**
@@ -228,7 +258,7 @@ export function inversions(chord: Chord, baseOctaveNote = 60): Inversion[] {
   return INVERSION_NAMES.map((name, index) => {
     const notes = [...voicing]
     for (let i = 0; i < index; i++) notes.push(notes.shift()! + 12)
-    return { name, notes, bass: bassOrder[index]! }
+    return { name, notes, bass: bassOrder[index]!, fingering: FINGERINGS[name] }
   })
 }
 

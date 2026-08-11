@@ -20,6 +20,11 @@ const props = withDefaults(defineProps<{
    * invalid HTML — the parser unnests it and hydration then disagrees with SSR.
    */
   interactive?: boolean
+  /**
+   * Finger numbers per MIDI note, right hand over left. Rendered on the key so
+   * the shape and the hand position are learned as one thing.
+   */
+  fingers?: Record<number, { right: number, left: number }>
   height?: string
 }>(), {
   roots: () => [],
@@ -28,6 +33,7 @@ const props = withDefaults(defineProps<{
   labels: true,
   byPitchClass: false,
   interactive: false,
+  fingers: undefined,
   height: 'h-16 sm:h-20'
 })
 
@@ -56,7 +62,8 @@ function key(note: number) {
     // octave of the root, and the inversion that omits one must not light it.
     root: on && litRoots.value.has(probe),
     name: noteName(toPitchClass(note), settings.value.accidentals),
-    octave: Math.floor(note / 12) - 1
+    octave: Math.floor(note / 12) - 1,
+    finger: props.fingers?.[note]
   }
 }
 
@@ -97,6 +104,14 @@ function keyAttrs(note: number) {
           v-if="labels"
           class="pointer-events-none mb-1 text-center font-mono text-[8px] leading-none"
         >{{ key(note).name }}</span>
+
+        <span
+          v-if="key(note).finger"
+          class="pointer-events-none mb-1 flex flex-col items-center font-mono text-[9px] leading-tight"
+        >
+          <span class="font-semibold">{{ key(note).finger!.right }}</span>
+          <span class="opacity-45">{{ key(note).finger!.left }}</span>
+        </span>
       </component>
     </div>
 
@@ -117,7 +132,16 @@ function keyAttrs(note: number) {
         ]"
         :style="{ left: `${black.left}%`, width: `${black.width}%` }"
         @pointerdown="interactive && (emit('press', black.note), $event.preventDefault())"
-      />
+      >
+        <span
+          v-if="key(black.note).finger"
+          class="pointer-events-none absolute inset-x-0 bottom-1 flex flex-col items-center font-mono text-[9px] leading-tight"
+          :class="key(black.note).root || key(black.note).on ? 'text-ebony' : 'text-ivory'"
+        >
+          <span class="font-semibold">{{ key(black.note).finger!.right }}</span>
+          <span class="opacity-45">{{ key(black.note).finger!.left }}</span>
+        </span>
+      </component>
     </div>
   </div>
 </template>

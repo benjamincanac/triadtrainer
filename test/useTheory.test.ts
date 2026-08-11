@@ -4,6 +4,8 @@ import {
   chordLabel,
   chordPitchClasses,
   chordPool,
+  FINGERINGS,
+  fingering,
   inversions,
   isBlackKey,
   DEFAULT_ACCIDENTALS,
@@ -286,6 +288,20 @@ describe('chordPool', () => {
     expect(chordPool()).toHaveLength(24)
   })
 
+  it('orders chromatically by root, major before minor, for ordered practice', () => {
+    const pool = chordPool()
+    expect(pool.slice(0, 4)).toEqual([
+      { root: 0, quality: 'major' },
+      { root: 0, quality: 'minor' },
+      { root: 1, quality: 'major' },
+      { root: 1, quality: 'minor' }
+    ])
+    expect(pool.at(-1)).toEqual({ root: 11, quality: 'minor' })
+    // Roots never go backwards.
+    const roots = pool.map(chord => chord.root)
+    expect([...roots].sort((a, b) => a - b)).toEqual(roots)
+  })
+
   it('filters by quality', () => {
     const major = chordPool({ quality: 'major' })
     const minor = chordPool({ quality: 'minor' })
@@ -344,6 +360,37 @@ describe('inversions', () => {
         expect(inversion.notes).toHaveLength(3)
         expect([...inversion.notes].sort((a, b) => a - b)).toEqual(inversion.notes)
         expect(matchesTriad(inversion.notes, chord), `${chordLabel(chord)} ${inversion.name}`).toBe(true)
+      }
+    }
+  })
+
+  it('fingers the fourth on the widest gap in each hand', () => {
+    // The fourth is the wide reach, so it takes thumb-to-index (right, going up)
+    // or index-to-thumb (left, going up). Everything else is 1-3-5 / 5-3-1.
+    expect(fingering('root')).toEqual({ right: [1, 3, 5], left: [5, 3, 1] })
+    expect(fingering('first')).toEqual({ right: [1, 2, 5], left: [5, 3, 1] })
+    expect(fingering('second')).toEqual({ right: [1, 3, 5], left: [5, 2, 1] })
+  })
+
+  it('gives three fingers per hand, thumb included, never repeating one', () => {
+    for (const [name, f] of Object.entries(FINGERINGS)) {
+      for (const hand of [f.right, f.left]) {
+        expect(hand, name).toHaveLength(3)
+        expect(new Set(hand).size, name).toBe(3)
+        expect(hand.every(n => n >= 1 && n <= 5), name).toBe(true)
+        expect(hand, name).toContain(1)
+      }
+      // Fingers always run low note to high note.
+      expect([...f.right].sort((a, b) => a - b), name).toEqual(f.right)
+      expect([...f.left].sort((a, b) => b - a), name).toEqual(f.left)
+    }
+  })
+
+  it('attaches the fingering to every voicing', () => {
+    for (const chord of allChords()) {
+      for (const inversion of inversions(chord)) {
+        expect(inversion.fingering).toEqual(FINGERINGS[inversion.name])
+        expect(inversion.fingering.right).toHaveLength(inversion.notes.length)
       }
     }
   })
