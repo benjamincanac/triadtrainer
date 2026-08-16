@@ -262,6 +262,35 @@ export function inversions(chord: Chord, baseOctaveNote = 60): Inversion[] {
   })
 }
 
+export interface IdentifiedChord {
+  chord: Chord
+  /** Read from the lowest note played, not from the set. */
+  inversion: InversionName
+  bass: PitchClass
+}
+
+/**
+ * The drill in reverse: name what's being held. Takes MIDI notes rather than
+ * pitch classes, because the lowest note is what decides the inversion, and
+ * that information is gone once the set is collapsed.
+ *
+ * Returns null for anything that isn't one of the 24 triads, including
+ * augmented and diminished shapes, so the caller can say so honestly.
+ */
+export function identifyTriad(notes: Iterable<number>): IdentifiedChord | null {
+  const played = [...notes]
+  const pitchClasses = pitchClassSet(played)
+  if (pitchClasses.size !== 3) return null
+
+  const chord = allChords().find(candidate => matchesTriad(pitchClasses, candidate))
+  if (!chord) return null
+
+  const bass = toPitchClass(Math.min(...played))
+  // chordPitchClasses is root, third, fifth, which is also root/first/second.
+  const index = chordPitchClasses(chord).indexOf(bass)
+  return { chord, inversion: INVERSION_NAMES[index] ?? 'root', bass }
+}
+
 /** Semitones above the tonic. */
 export const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11] as const
 export const NATURAL_MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10] as const

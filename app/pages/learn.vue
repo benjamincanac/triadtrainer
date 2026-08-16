@@ -22,7 +22,8 @@ const QUALITIES = [
 const LESSONS = [
   { value: 'shapes', label: 'Shapes' },
   { value: 'inversions', label: 'Inversions' },
-  { value: 'scale', label: 'Scale' }
+  { value: 'scale', label: 'Scale' },
+  { value: 'explore', label: 'Explore' }
 ]
 
 const root = ref(0)
@@ -36,7 +37,10 @@ const chord = computed<Chord>(() => ({ root: root.value, quality: quality.value 
  * picker would imply a dependency that isn't there. Quality still applies:
  * the major and minor families group differently.
  */
-const needsRoot = computed(() => lesson.value !== 'shapes')
+const needsRoot = computed(() => lesson.value === 'inversions' || lesson.value === 'scale')
+
+/** Explore reads the chord off the keys, so nothing above it applies. */
+const needsControls = computed(() => lesson.value !== 'explore')
 
 /** Arpeggiate rather than strike together, so each note is audible on its own. */
 function playNotes(notes: number[]) {
@@ -65,7 +69,10 @@ function playNotes(notes: number[]) {
       }"
     />
 
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-default bg-elevated px-3 py-2.5">
+    <div
+      v-if="needsControls"
+      class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-default bg-elevated px-3 py-2.5"
+    >
       <!-- A field group is deliberately non-wrapping so its segments stay
            joined, and twelve roots are wider than a phone. Scroll the control
            rather than the page. -->
@@ -113,6 +120,9 @@ function playNotes(notes: number[]) {
 
     <LessonShapes v-if="lesson === 'shapes'" :quality="quality" @play="playNotes" />
     <LessonInversions v-else-if="lesson === 'inversions'" :chord="chord" @play="playNotes" />
-    <LessonScale v-else :chord="chord" @play="playNotes" />
+    <LessonScale v-else-if="lesson === 'scale'" :chord="chord" @play="playNotes" />
+    <ClientOnly v-else>
+      <LessonExplore @play="playNotes" />
+    </ClientOnly>
   </div>
 </template>

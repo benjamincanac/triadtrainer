@@ -9,6 +9,7 @@ const props = defineProps<{
   showLabel: boolean
   lamp: LampState
   pressed: boolean
+  finger?: { right: number, left: number }
 }>()
 
 defineEmits<{ press: [midiNote: number] }>()
@@ -47,6 +48,15 @@ const lampClass = computed(() => {
     @keydown.enter.prevent="$emit('press', midiNote)"
     @keydown.space.prevent.stop="$emit('press', midiNote)"
   >
+    <span
+      v-if="finger"
+      class="pointer-events-none mb-1 flex flex-col items-center font-mono text-[10px] leading-tight"
+      :class="black ? 'text-ivory' : 'text-ebony'"
+    >
+      <span class="font-semibold">{{ finger.right }}</span>
+      <span class="opacity-45">{{ finger.left }}</span>
+    </span>
+
     <span
       v-if="showLabel"
       class="pointer-events-none mb-1.5 text-center font-mono leading-none tracking-tight"

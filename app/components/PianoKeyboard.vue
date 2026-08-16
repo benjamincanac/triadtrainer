@@ -8,6 +8,8 @@ const props = defineProps<{
   lampFor: (pitchClass: number) => LampState
   selected: Set<number>
   showLabels: boolean
+  /** Finger numbers per MIDI note, right hand over left. */
+  fingers?: Record<number, { right: number, left: number }>
 }>()
 
 const { settings } = useSettings()
@@ -24,7 +26,8 @@ function keyProps(note: number) {
     label: noteName(pitchClass, settings.value.accidentals),
     showLabel: props.showLabels,
     lamp: props.lampFor(pitchClass),
-    pressed: props.selected.has(pitchClass)
+    pressed: props.selected.has(pitchClass),
+    finger: props.fingers?.[note]
   }
 }
 </script>

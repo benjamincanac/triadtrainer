@@ -6,6 +6,7 @@ import {
   chordPool,
   FINGERINGS,
   fingering,
+  identifyTriad,
   inversions,
   isBlackKey,
   DEFAULT_ACCIDENTALS,
@@ -403,6 +404,45 @@ describe('inversions', () => {
       [67, 72, 76] // G C E
     ])
     expect(list.map(inversion => inversion.bass)).toEqual(['root', 'third', 'fifth'])
+  })
+})
+
+describe('identifyTriad', () => {
+  it('names all 24 from their pitch classes', () => {
+    for (const chord of allChords()) {
+      const found = identifyTriad(chordPitchClasses(chord))
+      expect(found, chordLabel(chord)).not.toBeNull()
+      expect(sameChord(found!.chord, chord), chordLabel(chord)).toBe(true)
+    }
+  })
+
+  it('reads the inversion off the lowest note', () => {
+    for (const chord of allChords()) {
+      for (const voicing of inversions(chord, 60)) {
+        const found = identifyTriad(voicing.notes)!
+        expect(found, `${chordLabel(chord)} ${voicing.name}`).not.toBeNull()
+        expect(sameChord(found.chord, chord)).toBe(true)
+        expect(found.inversion, `${chordLabel(chord)} ${voicing.name}`).toBe(voicing.name)
+        expect(found.bass).toBe(toPitchClass(Math.min(...voicing.notes)))
+      }
+    }
+  })
+
+  it('ignores octave and duplication', () => {
+    // C major spread across three octaves, root doubled
+    expect(identifyTriad([36, 60, 64, 67, 72])!.chord).toEqual({ root: 0, quality: 'major' })
+    // same set, but E in the bass is still a first inversion
+    expect(identifyTriad([52, 60, 67])!.inversion).toBe('first')
+  })
+
+  it('returns null for anything that is not one of the 24', () => {
+    expect(identifyTriad([])).toBeNull()
+    expect(identifyTriad([60])).toBeNull()
+    expect(identifyTriad([60, 64])).toBeNull()
+    expect(identifyTriad([60, 64, 67, 71])).toBeNull()
+    expect(identifyTriad([60, 64, 68])).toBeNull() // augmented
+    expect(identifyTriad([60, 63, 66])).toBeNull() // diminished
+    expect(identifyTriad([60, 62, 67])).toBeNull() // sus2
   })
 })
 

@@ -12,7 +12,7 @@ const items: NavigationMenuItem[][] = [
     {
       label: 'GitHub',
       to: 'https://github.com/benjamincanac/triadtrainer',
-      target: '_blank',
+      target: '_blank'
     }
   ]
 ]
@@ -34,6 +34,7 @@ const items: NavigationMenuItem[][] = [
 
         <UNavigationMenu
           :items="items"
+          :external-icon="false"
           :ui="{ link: 'font-mono text-[11px]' }"
         />
       </header>
