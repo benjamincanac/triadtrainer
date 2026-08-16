@@ -5,6 +5,9 @@ import { DEFAULT_ACCIDENTALS, type Accidentals, type QualityFilter } from './use
 /** Random keeps you honest; ordered is for first learning the shapes. */
 export type DrillOrder = 'random' | 'sequential'
 
+/** Drill asks for chords; explore names whatever you play. */
+export type Mode = 'drill' | 'explore'
+
 const STORAGE_KEY = 'triadtrainer.settings.v1'
 const LEGACY_STORAGE_KEY = 'subito.settings.v1'
 
@@ -19,6 +22,8 @@ export interface Settings {
   accidentals: Accidentals
   /** Draw chords at random, or walk the pool in order. */
   order: DrillOrder
+  /** What the home page does. */
+  mode: Mode
 }
 
 const DEFAULTS: Settings = {
@@ -26,7 +31,8 @@ const DEFAULTS: Settings = {
   hideNames: false,
   whiteRootsOnly: false,
   accidentals: DEFAULT_ACCIDENTALS,
-  order: 'random'
+  order: 'random',
+  mode: 'drill'
 }
 
 // App-lifetime singleton so the settings panel and the drill share one object.
@@ -46,7 +52,8 @@ function sanitize(value: Partial<Settings> | null): Settings {
       : DEFAULTS.accidentals,
     order: value.order === 'random' || value.order === 'sequential'
       ? value.order
-      : DEFAULTS.order
+      : DEFAULTS.order,
+    mode: value.mode === 'drill' || value.mode === 'explore' ? value.mode : DEFAULTS.mode
   }
 }
 

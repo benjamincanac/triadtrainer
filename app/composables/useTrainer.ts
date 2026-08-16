@@ -6,6 +6,7 @@ import { useSynth } from './useSynth'
 import {
   chordPitchClasses,
   chordPool,
+  identifyTriad,
   matchesTriad,
   pickChord,
   sameChord,
@@ -36,8 +37,11 @@ export function useTrainer() {
    * Clicked keys latch (you can't hold three with one pointer) while MIDI notes
    * are transient. The union of the two is the answer, which is what makes the
    * two input modes interchangeable.
+   *
+   * Stored as MIDI note numbers rather than pitch classes: explore mode reads
+   * the inversion off the lowest note, and collapsing to a set loses that.
    */
-  const clicked = ref<Set<PitchClass>>(new Set())
+  const clicked = ref<Set<number>>(new Set())
 
   /**
    * What was actually played at the moment of validation. Frozen because the
@@ -62,11 +66,21 @@ export function useTrainer() {
     })
   )
 
-  const selected = computed(() => {
+  /** Everything currently down, as MIDI notes. */
+  const selectedNotes = computed(() => {
     const set = new Set(clicked.value)
-    for (const pitchClass of midi.heldPitchClasses.value) set.add(pitchClass)
+    for (const note of midi.heldNotes.value) set.add(note)
     return set
   })
+
+  const selected = computed(() => {
+    const set = new Set<PitchClass>()
+    for (const note of selectedNotes.value) set.add(toPitchClass(note))
+    return set
+  })
+
+  /** Explore mode: name whatever is being held, inversion included. */
+  const identified = computed(() => identifyTriad(selectedNotes.value))
 
   const target = computed(() =>
     current.value ? new Set(chordPitchClasses(current.value)) : new Set<PitchClass>()
@@ -137,6 +151,8 @@ export function useTrainer() {
   }
 
   watch(selected, set => {
+    // Explore is free play: no prompt, no timer, nothing to be wrong about.
+    if (settings.value.mode === 'explore') return
     if (phase.value !== 'awaiting') return
 
     if (!armed.value) {
@@ -158,16 +174,21 @@ export function useTrainer() {
     synth.unlock()
     synth.play(midiNote)
 
-    if (phase.value !== 'awaiting') return
+    if (settings.value.mode !== 'explore' && phase.value !== 'awaiting') return
 
-    const pitchClass = toPitchClass(midiNote)
     const updated = new Set(clicked.value)
-    if (updated.has(pitchClass)) updated.delete(pitchClass)
-    else updated.add(pitchClass)
+    if (updated.has(midiNote)) updated.delete(midiNote)
+    else updated.add(midiNote)
     clicked.value = updated
   }
 
   function lampFor(pitchClass: PitchClass): LampState {
+    if (settings.value.mode === 'explore') {
+      if (!selected.value.has(pitchClass)) return 'off'
+      // Amber while you build it, green once it spells one of the 24.
+      return identified.value ? 'correct' : 'selected'
+    }
+
     if (phase.value === 'awaiting') {
       return selected.value.has(pitchClass) ? 'selected' : 'off'
     }
@@ -178,6 +199,12 @@ export function useTrainer() {
     if (wasPlayed) return inTarget ? 'correct' : 'wrong'
     if (phase.value === 'wrong' && inTarget) return 'revealed'
     return 'off'
+  }
+
+  /** Explore has no prompt to advance, so it needs a way to empty the board. */
+  function clearHeld() {
+    clicked.value = new Set()
+    midi.clearHeld()
   }
 
   async function start() {
@@ -195,6 +222,9 @@ export function useTrainer() {
     phase,
     verdict,
     selected,
+    selectedNotes,
+    identified,
+    clearHeld,
     pool,
     lampFor,
     pressKey,
