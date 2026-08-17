@@ -39,7 +39,7 @@ const relative = computed<Chord>(() =>
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
+    <p class="max-w-prose text-xs leading-relaxed text-muted">
       The triad is degrees 1, 3 and 5 of its scale. Seeing where the chord sits in the
       seven notes is what makes it findable without counting semitones.
     </p>
@@ -86,7 +86,7 @@ const relative = computed<Chord>(() =>
         </li>
       </ol>
 
-      <p class="font-sans text-[11px] leading-relaxed text-muted">
+      <p class="text-[11px] leading-relaxed text-muted">
         Degrees {{ TRIAD_DEGREES.join(', ') }} highlighted make {{ chordLabel(chord, settings.accidentals) }}.
         The same seven notes spell {{ chordLabel(relative, settings.accidentals) }}, its relative
         {{ relative.quality }}.

@@ -69,7 +69,7 @@ const value = computed({
         <h2 class="font-mono text-[11px] tracking-wide text-highlighted">
           {{ copy.title }}
         </h2>
-        <p class="font-sans text-[11px] leading-relaxed text-muted">
+        <p class="text-[11px] leading-relaxed text-muted">
           {{ copy.detail }}
         </p>
       </div>

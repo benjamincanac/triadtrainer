@@ -62,7 +62,7 @@ function play(root: number) {
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
+    <p class="max-w-prose text-xs leading-relaxed text-muted">
       Nine of the twelve {{ quality }} triads are the same gesture moved around the keyboard.
       Learn the four groups instead of twelve chords. Tap a diagram to hear it.
     </p>
@@ -100,7 +100,7 @@ function play(root: number) {
           />
         </button>
 
-        <p class="font-sans text-[11px] leading-relaxed text-muted">
+        <p class="text-[11px] leading-relaxed text-muted">
           {{ group.blurb }}
         </p>
 

@@ -30,7 +30,7 @@ const voicings = computed(() =>
 
 <template>
   <section class="flex flex-col gap-3">
-    <p class="max-w-prose font-sans text-xs leading-relaxed text-muted">
+    <p class="max-w-prose text-xs leading-relaxed text-muted">
       Same three notes, three stacking orders. The drill accepts all of them, because
       {{ chordLabel(chord, settings.accidentals) }} is a set of pitch classes, not a fingering.
       Numbers on the keys are fingers, <span class="text-highlighted">right hand on top</span>,
@@ -60,7 +60,7 @@ const voicings = computed(() =>
             <span class="px-1 opacity-40">·</span>
             <span>L {{ voicing.fingering.left.join('-') }}</span>
           </p>
-          <p class="font-sans text-[11px] leading-relaxed text-muted">
+          <p class="text-[11px] leading-relaxed text-muted">
             {{ voicing.blurb }}
           </p>
         </div>
