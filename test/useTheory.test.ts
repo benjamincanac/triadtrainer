@@ -7,13 +7,19 @@ import {
   FINGERINGS,
   fingering,
   identifyTriad,
+  INVERSION_NAMES,
+  inversionBass,
+  inversionLabel,
   inversions,
   isBlackKey,
   DEFAULT_ACCIDENTALS,
   FLAT_NAMES,
+  matchesInversion,
   matchesTriad,
+  nextInversion,
   normalize,
   pickChord,
+  pickInversion,
   pitchClassSet,
   noteName,
   rootsInFamily,
@@ -27,7 +33,8 @@ import {
   triad,
   triadShape,
   WHITE_ROOTS,
-  type Chord
+  type Chord,
+  type InversionName
 } from '../app/composables/useTheory'
 
 /**
@@ -404,6 +411,129 @@ describe('inversions', () => {
       [67, 72, 76] // G C E
     ])
     expect(list.map(inversion => inversion.bass)).toEqual(['root', 'third', 'fifth'])
+  })
+})
+
+describe('inversionBass', () => {
+  it('demands root, third then fifth in the bass', () => {
+    for (const chord of allChords()) {
+      const notes = chordPitchClasses(chord)
+      expect(inversionBass(chord, 'root'), chordLabel(chord)).toBe(notes[0])
+      expect(inversionBass(chord, 'first'), chordLabel(chord)).toBe(notes[1])
+      expect(inversionBass(chord, 'second'), chordLabel(chord)).toBe(notes[2])
+    }
+  })
+
+  it('agrees with the voicings inversions() builds', () => {
+    for (const chord of allChords()) {
+      for (const voicing of inversions(chord, 60)) {
+        expect(
+          inversionBass(chord, voicing.name),
+          `${chordLabel(chord)} ${voicing.name}`
+        ).toBe(toPitchClass(Math.min(...voicing.notes)))
+      }
+    }
+  })
+})
+
+describe('matchesInversion', () => {
+  it('accepts each voicing under its own name and no other', () => {
+    for (const chord of allChords()) {
+      for (const voicing of inversions(chord, 60)) {
+        for (const name of INVERSION_NAMES) {
+          expect(
+            matchesInversion(voicing.notes, chord, name),
+            `${chordLabel(chord)} ${voicing.name} graded as ${name}`
+          ).toBe(name === voicing.name)
+        }
+      }
+    }
+  })
+
+  it('ignores which octave the voicing sits in', () => {
+    for (const chord of allChords()) {
+      for (const base of [36, 48, 60, 72]) {
+        for (const index of [0, 1, 2]) {
+          const notes = invert(rootPosition(chord, base), index)
+          const name = INVERSION_NAMES[index]!
+          expect(
+            matchesInversion(notes, chord, name),
+            `${chordLabel(chord)} ${name} at ${base}`
+          ).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('accepts a bass doubled an octave up', () => {
+    const cMajor: Chord = { root: 0, quality: 'major' }
+    // C in the left hand, C E G in the right: still root position.
+    expect(matchesInversion([48, 60, 64, 67], cMajor, 'root')).toBe(true)
+  })
+
+  it('accepts an open voicing as long as the bass is right', () => {
+    const cMajor: Chord = { root: 0, quality: 'major' }
+    // E at the bottom, G and C spread well above it.
+    expect(matchesInversion([52, 79, 84], cMajor, 'first')).toBe(true)
+  })
+
+  it('rejects the right notes under the wrong bass', () => {
+    const cMajor: Chord = { root: 0, quality: 'major' }
+    // E G C passes the set check, which is exactly what makes it worth grading.
+    expect(matchesTriad([64, 67, 72], cMajor)).toBe(true)
+    expect(matchesInversion([64, 67, 72], cMajor, 'first')).toBe(true)
+    expect(matchesInversion([64, 67, 72], cMajor, 'root')).toBe(false)
+    expect(matchesInversion([64, 67, 72], cMajor, 'second')).toBe(false)
+  })
+
+  it('rejects the wrong chord however it is voiced', () => {
+    const cMajor: Chord = { root: 0, quality: 'major' }
+    const cMinor: Chord = { root: 0, quality: 'minor' }
+    for (const voicing of inversions(cMinor, 60)) {
+      for (const name of INVERSION_NAMES) {
+        expect(matchesInversion(voicing.notes, cMajor, name)).toBe(false)
+      }
+    }
+  })
+
+  it('rejects too few notes, too many, and nothing at all', () => {
+    const cMajor: Chord = { root: 0, quality: 'major' }
+    expect(matchesInversion([], cMajor, 'root')).toBe(false)
+    expect(matchesInversion([60], cMajor, 'root')).toBe(false)
+    expect(matchesInversion([60, 64], cMajor, 'root')).toBe(false)
+    expect(matchesInversion([60, 64, 67, 71], cMajor, 'root')).toBe(false)
+  })
+})
+
+describe('inversion cycling and naming', () => {
+  it('cycles root to first to second and back', () => {
+    expect(nextInversion('root')).toBe('first')
+    expect(nextInversion('first')).toBe('second')
+    expect(nextInversion('second')).toBe('root')
+  })
+
+  it('returns to the start after three steps, from any start', () => {
+    for (const name of INVERSION_NAMES) {
+      expect(nextInversion(nextInversion(nextInversion(name))), name).toBe(name)
+    }
+  })
+
+  it('labels the three inversions the way the prompt reads them', () => {
+    expect(inversionLabel('root')).toBe('root position')
+    expect(inversionLabel('first')).toBe('1st inversion')
+    expect(inversionLabel('second')).toBe('2nd inversion')
+  })
+
+  it('picks deterministically for a given random value', () => {
+    expect(pickInversion(() => 0)).toBe('root')
+    expect(pickInversion(() => 0.4)).toBe('first')
+    expect(pickInversion(() => 0.99)).toBe('second')
+  })
+
+  it('reaches all three across the random range', () => {
+    const seen = new Set<InversionName>()
+    for (let i = 0; i < 30; i++) seen.add(pickInversion(() => i / 30))
+    expect(seen).toEqual(new Set(INVERSION_NAMES))
   })
 })
 

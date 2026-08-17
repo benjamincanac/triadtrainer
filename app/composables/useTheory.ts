@@ -262,6 +262,49 @@ export function inversions(chord: Chord, baseOctaveNote = 60): Inversion[] {
   })
 }
 
+/** How each inversion reads in a prompt. One table, so prompt and verdict agree. */
+const INVERSION_LABELS: Record<InversionName, string> = {
+  root: 'root position',
+  first: '1st inversion',
+  second: '2nd inversion'
+}
+
+export function inversionLabel(name: InversionName): string {
+  return INVERSION_LABELS[name]
+}
+
+/**
+ * The pitch class an inversion demands in the bass. `chordPitchClasses` is root,
+ * third, fifth, which is also root, first, second.
+ */
+export function inversionBass(chord: Chord, inversion: InversionName): PitchClass {
+  return chordPitchClasses(chord)[INVERSION_NAMES.indexOf(inversion)]!
+}
+
+/**
+ * The stricter grade: the right three pitch classes *and* the right one at the
+ * bottom. Everything above the bass stays free, so doubling and octave spread
+ * are as unconstrained as they are in `matchesTriad`.
+ *
+ * Takes MIDI notes rather than pitch classes, because the set collapse loses
+ * the one piece of information this needs.
+ */
+export function matchesInversion(
+  notes: Iterable<number>,
+  chord: Chord,
+  inversion: InversionName
+): boolean {
+  const played = [...notes]
+  if (played.length === 0) return false
+  if (!matchesTriad(played, chord)) return false
+  return toPitchClass(Math.min(...played)) === inversionBass(chord, inversion)
+}
+
+/** root → first → second → root. Ordered practice cycles a chord this way. */
+export function nextInversion(name: InversionName): InversionName {
+  return INVERSION_NAMES[(INVERSION_NAMES.indexOf(name) + 1) % INVERSION_NAMES.length]!
+}
+
 export interface IdentifiedChord {
   chord: Chord
   /** Read from the lowest note played, not from the set. */
@@ -332,4 +375,12 @@ export function pickChord(
   const candidates = pool.length > 1 ? pool.filter(chord => !sameChord(chord, previous)) : pool
   const list = candidates.length > 0 ? candidates : pool
   return list[Math.floor(random() * list.length) % list.length]!
+}
+
+/**
+ * Uniform over the three inversions, repeats allowed: unlike the chord, hearing
+ * the same inversion twice running is no giveaway.
+ */
+export function pickInversion(random: () => number = Math.random): InversionName {
+  return INVERSION_NAMES[Math.floor(random() * INVERSION_NAMES.length) % INVERSION_NAMES.length]!
 }
