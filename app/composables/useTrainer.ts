@@ -145,7 +145,8 @@ export function useTrainer() {
 
   /**
    * Ear training: the chord itself is the prompt. Root position at the bottom
-   * of the keyboard, struck together, because a spread one gives the bass away.
+   * of the keyboard, as one chord rather than an arpeggio, so it has to be
+   * heard as a shape instead of read off note by note.
    *
    * Doubles as the replay handler, and deliberately leaves the chrono running:
    * time spent listening to it a second time is time the chord took.
