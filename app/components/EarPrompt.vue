@@ -1,15 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useSettings } from '~/composables/useSettings'
 import { chordLabel, type Chord } from '~/composables/useTheory'
 import type { Phase } from '~/composables/useTrainer'
 
-defineProps<{
+const props = defineProps<{
   chord: Chord | null
   phase: Phase
   verdict: string
 }>()
 
 const { settings } = useSettings()
+
+/**
+ * Never named before you answer, and only after if you've asked for it. A miss
+ * retries the same chord, so naming it first hands you the retry. The lamps
+ * still show which notes it was either way.
+ */
+const headline = computed(() => {
+  if (!props.chord || props.phase === 'awaiting' || !settings.value.revealName) return '?'
+  return chordLabel(props.chord, settings.value.accidentals)
+})
 </script>
 
 <template>
@@ -28,9 +39,7 @@ const { settings } = useSettings()
         'text-bad': phase === 'wrong'
       }"
     >
-      <!-- Withheld until it's answered, then named: putting the sound and the
-           name together is the half of this that actually teaches. -->
-      {{ phase === 'awaiting' || !chord ? '?' : chordLabel(chord, settings.accidentals) }}
+      {{ headline }}
     </p>
 
     <p

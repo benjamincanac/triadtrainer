@@ -31,6 +31,11 @@ export interface Settings {
   order: DrillOrder
   /** Name an inversion in the prompt and grade the bass note, not just the set. */
   inversions: boolean
+  /**
+   * Ear training: say what the chord was once you've answered. Off by default,
+   * because a miss retries the same chord and being told first gives it away.
+   */
+  revealName: boolean
   /** What the home page does. */
   mode: Mode
 }
@@ -42,6 +47,7 @@ const DEFAULTS: Settings = {
   accidentals: DEFAULT_ACCIDENTALS,
   order: 'random',
   inversions: false,
+  revealName: false,
   mode: 'drill'
 }
 
@@ -64,6 +70,7 @@ function sanitize(value: Partial<Settings> | null): Settings {
       ? value.order
       : DEFAULTS.order,
     inversions: typeof value.inversions === 'boolean' ? value.inversions : DEFAULTS.inversions,
+    revealName: typeof value.revealName === 'boolean' ? value.revealName : DEFAULTS.revealName,
     mode: value.mode && MODES.includes(value.mode) ? value.mode : DEFAULTS.mode
   }
 }

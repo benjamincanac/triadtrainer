@@ -12,8 +12,9 @@ inversions, and the scale each one comes from.
 **Drill** names a chord and times how long you take to play it. Turn on *Ask for inversions* and the
 prompt names a voicing too, so `C major / 1st inversion` wants E at the bottom.
 
-**Ear** plays a chord instead of naming one. Find it on the keyboard, and the name appears once you
-answer. `R` plays it again, and listening twice costs you the time it costs you.
+**Ear** plays a chord instead of naming one. Find it on the keyboard. `R` plays it again, and
+listening twice costs you the time it costs you. A miss retries the same chord, so the name stays
+hidden unless you turn on *Name the answer*.
 
 **Explore** is free play. It names whatever you hold, with the inversion and the fingering for both
 hands.
