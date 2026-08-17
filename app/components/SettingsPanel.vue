@@ -34,6 +34,7 @@ const accidentals = field('accidentals')
 const order = field('order')
 const hideNames = field('hideNames')
 const whiteRootsOnly = field('whiteRootsOnly')
+const inversions = field('inversions')
 
 /** Typography only — the layout is the component's own. */
 const RADIO_UI = {
@@ -85,5 +86,7 @@ const SWITCH_UI = {
 
     <USwitch v-model="hideNames" label="Hide note names" :ui="SWITCH_UI" />
     <USwitch v-model="whiteRootsOnly" label="White-key roots only" :ui="SWITCH_UI" />
+    <!-- Drill only. Ear training asks for the chord, never for a voicing. -->
+    <USwitch v-model="inversions" label="Ask for inversions" :ui="SWITCH_UI" />
   </UCard>
 </template>

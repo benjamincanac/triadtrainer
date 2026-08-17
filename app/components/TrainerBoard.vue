@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted } from 'vue'
 import type { Settings } from '~/composables/useSettings'
+import { DAILY_GOAL } from '~/composables/useStats'
 import { fingering } from '~/composables/useTheory'
 import { useTrainer } from '~/composables/useTrainer'
 
 const MODES = [
   { label: 'Drill', value: 'drill' },
+  { label: 'Ear', value: 'ear' },
   { label: 'Explore', value: 'explore' }
 ] as const
 
@@ -14,6 +16,7 @@ const {
   stats,
   midi,
   current,
+  currentInversion,
   phase,
   verdict,
   selected,
@@ -21,12 +24,14 @@ const {
   lampFor,
   pressKey,
   next,
+  replay,
   start,
   identified,
   clearHeld
 } = useTrainer()
 
 const isExplore = computed(() => settings.value.mode === 'explore')
+const isEar = computed(() => settings.value.mode === 'ear')
 
 function setMode(mode: Settings['mode']) {
   settings.value = { ...settings.value, mode }
@@ -53,8 +58,17 @@ const fingers = computed(() => {
 const INTERACTIVE = 'input, textarea, select, button, [contenteditable], [role="switch"], [role="combobox"]'
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.code !== 'Space' || event.repeat || event.metaKey || event.ctrlKey || event.altKey) return
+  if (event.code !== 'Space' && event.code !== 'KeyR') return
+  if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return
   if ((event.target as HTMLElement | null)?.closest?.(INTERACTIVE)) return
+
+  // R hears the prompt again, and only ear mode has one to hear.
+  if (event.code === 'KeyR') {
+    if (!isEar.value) return
+    event.preventDefault()
+    replay()
+    return
+  }
 
   if (isExplore.value) return
 
@@ -78,10 +92,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </UFieldGroup>
     </div>
 
-    <ExploreReadout v-if="isExplore" :identified="identified" :held="selectedNotes" />
-    <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" />
+    <EarPrompt v-if="isEar" :chord="current" :phase="phase" :verdict="verdict" />
+    <ExploreReadout v-else-if="isExplore" :identified="identified" :held="selectedNotes" />
+    <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" :inversion="currentInversion" />
 
-    <div class="flex justify-center">
+    <div class="flex justify-center gap-2">
+      <UButton v-if="isEar" label="Replay" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="replay()">
+        <template #trailing>
+          <UKbd value="R" variant="subtle" size="sm" />
+        </template>
+      </UButton>
+
       <UButton :label="isExplore ? 'Clear' : 'Skip'" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="isExplore ? clearHeld() : next()">
         <template #trailing>
           <UKbd value="space" variant="subtle" size="sm" />
@@ -91,7 +112,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
     <PianoKeyboard :lamp-for="lampFor" :selected="selected" :show-labels="!settings.hideNames" :fingers="fingers" @press="pressKey" />
 
-    <StatsPanel v-if="!isExplore" :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" />
+    <StatsPanel v-if="!isExplore" :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" :day-streak="stats.dayStreak.value.length" :streak-active-today="stats.dayStreak.value.activeToday" :today-correct="stats.todayCorrect.value" :daily-goal="DAILY_GOAL" />
+
+    <MasteryGrid v-if="!isExplore" :stats="stats.perChord.value" :accidentals="settings.accidentals" />
 
     <div class="grid items-start gap-4 md:grid-cols-3">
       <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />

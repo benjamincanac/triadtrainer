@@ -5,8 +5,13 @@ import { DEFAULT_ACCIDENTALS, type Accidentals, type QualityFilter } from './use
 /** Random keeps you honest; ordered is for first learning the shapes. */
 export type DrillOrder = 'random' | 'sequential'
 
-/** Drill asks for chords; explore names whatever you play. */
-export type Mode = 'drill' | 'explore'
+/**
+ * Drill asks for chords, ear plays one for you to find by sound, explore names
+ * whatever you play.
+ */
+export type Mode = 'drill' | 'explore' | 'ear'
+
+const MODES: Mode[] = ['drill', 'explore', 'ear']
 
 const STORAGE_KEY = 'triadtrainer.settings.v1'
 const LEGACY_STORAGE_KEY = 'subito.settings.v1'
@@ -22,6 +27,8 @@ export interface Settings {
   accidentals: Accidentals
   /** Draw chords at random, or walk the pool in order. */
   order: DrillOrder
+  /** Name an inversion in the prompt and grade the bass note, not just the set. */
+  inversions: boolean
   /** What the home page does. */
   mode: Mode
 }
@@ -32,6 +39,7 @@ const DEFAULTS: Settings = {
   whiteRootsOnly: false,
   accidentals: DEFAULT_ACCIDENTALS,
   order: 'random',
+  inversions: false,
   mode: 'drill'
 }
 
@@ -53,7 +61,8 @@ function sanitize(value: Partial<Settings> | null): Settings {
     order: value.order === 'random' || value.order === 'sequential'
       ? value.order
       : DEFAULTS.order,
-    mode: value.mode === 'drill' || value.mode === 'explore' ? value.mode : DEFAULTS.mode
+    inversions: typeof value.inversions === 'boolean' ? value.inversions : DEFAULTS.inversions,
+    mode: value.mode && MODES.includes(value.mode) ? value.mode : DEFAULTS.mode
   }
 }
 

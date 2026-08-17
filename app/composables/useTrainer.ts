@@ -7,11 +7,18 @@ import {
   chordPitchClasses,
   chordPool,
   identifyTriad,
+  inversionBass,
+  inversions,
+  matchesInversion,
   matchesTriad,
+  nextInversion,
+  noteName,
   pickChord,
+  pickInversion,
   sameChord,
   toPitchClass,
   type Chord,
+  type InversionName,
   type PitchClass
 } from './useTheory'
 
@@ -32,6 +39,15 @@ export function useTrainer() {
 
   const current = ref<Chord | null>(null)
   const phase = ref<Phase>('awaiting')
+
+  /**
+   * Which inversion the prompt is asking for, or null when the grade is the
+   * pitch class set alone and any voicing counts.
+   */
+  const currentInversion = ref<InversionName | null>(null)
+
+  /** The three right notes under the wrong one. A different miss, said so. */
+  const wrongBass = ref(false)
 
   /**
    * Clicked keys latch (you can't hold three with one pointer) while MIDI notes
@@ -66,6 +82,14 @@ export function useTrainer() {
     })
   )
 
+  /**
+   * Ear training ignores the setting: finding the chord by sound is the whole
+   * exercise, and asking for a voicing on top of it is a different drill.
+   */
+  const drillsInversions = computed(() =>
+    settings.value.inversions && settings.value.mode === 'drill'
+  )
+
   /** Everything currently down, as MIDI notes. */
   const selectedNotes = computed(() => {
     const set = new Set(clicked.value)
@@ -88,8 +112,18 @@ export function useTrainer() {
 
   const verdict = computed(() => {
     if (phase.value === 'correct') return 'Correct'
-    if (phase.value === 'wrong') return 'Wrong — the answer is lit on the keys'
-    return ''
+    if (phase.value !== 'wrong') return ''
+
+    const chord = current.value
+    const inversion = currentInversion.value
+    if (wrongBass.value && chord && inversion) {
+      // The lamps can't show this one: they light per pitch class, so all three
+      // of them are already green. Which note goes at the bottom has to be said.
+      const bass = noteName(inversionBass(chord, inversion), settings.value.accidentals)
+      return `Right notes — put ${bass} at the bottom`
+    }
+
+    return 'Wrong — the answer is lit on the keys'
   })
 
   function clearTimer() {
@@ -104,34 +138,60 @@ export function useTrainer() {
     clicked.value = new Set()
     answered.value = new Set()
     phase.value = 'awaiting'
+    wrongBass.value = false
     startedAt = performance.now()
     armed.value = selected.value.size < 3
+  }
+
+  /**
+   * Ear training: the chord itself is the prompt. Root position at the bottom
+   * of the keyboard, struck together, because a spread one gives the bass away.
+   *
+   * Doubles as the replay handler, and deliberately leaves the chrono running:
+   * time spent listening to it a second time is time the chord took.
+   */
+  function playPrompt() {
+    const chord = current.value
+    if (!chord || settings.value.mode !== 'ear') return
+    synth.playNotes(inversions(chord)[0]!.notes)
   }
 
   function next() {
     clearTimer()
 
     if (settings.value.order === 'sequential') {
-      const list = pool.value
-      if (list.length === 0) {
-        current.value = null
+      const inversion = currentInversion.value
+
+      // With inversions on, one chord is three prompts. Walk those first.
+      if (drillsInversions.value && current.value && inversion && inversion !== 'second') {
+        currentInversion.value = nextInversion(inversion)
       } else {
-        // Resume from wherever the current chord sits, so switching to ordered
-        // mode mid-session carries on rather than jumping back to C.
-        const at = current.value ? list.findIndex(chord => sameChord(chord, current.value)) : -1
-        current.value = list[(at + 1) % list.length]!
+        const list = pool.value
+        if (list.length === 0) {
+          current.value = null
+        } else {
+          // Resume from wherever the current chord sits, so switching to ordered
+          // mode mid-session carries on rather than jumping back to C.
+          const at = current.value ? list.findIndex(chord => sameChord(chord, current.value)) : -1
+          current.value = list[(at + 1) % list.length]!
+        }
+        currentInversion.value = drillsInversions.value ? 'root' : null
       }
     } else {
       current.value = pickChord(pool.value, current.value)
+      currentInversion.value = drillsInversions.value ? pickInversion() : null
     }
 
     rearm()
+    playPrompt()
   }
 
   /** Same chord again after a miss. */
   function retry() {
     clearTimer()
     rearm()
+    // In ear mode the prompt was the sound, so it has to be given again.
+    playPrompt()
   }
 
   function evaluate() {
@@ -139,12 +199,19 @@ export function useTrainer() {
     if (!chord) return
 
     const ms = performance.now() - startedAt
-    const played = new Set(selected.value)
-    const ok = matchesTriad(played, chord)
+    // Graded from the MIDI notes, not the collapsed set: the inversion lives in
+    // the lowest one. `matchesTriad` collapses them itself either way.
+    const notes = [...selectedNotes.value]
+    const inversion = currentInversion.value
+    const ok = inversion
+      ? matchesInversion(notes, chord, inversion)
+      : matchesTriad(notes, chord)
 
-    answered.value = played
+    wrongBass.value = !ok && inversion !== null && matchesTriad(notes, chord)
+
+    answered.value = new Set(selected.value)
     phase.value = ok ? 'correct' : 'wrong'
-    stats.record(chord, ms, ok)
+    stats.record(chord, ms, ok, { inversion, ear: settings.value.mode === 'ear' })
 
     clearTimer()
     timer = setTimeout(ok ? next : retry, ok ? ADVANCE_DELAY : REVEAL_DELAY)
@@ -167,6 +234,19 @@ export function useTrainer() {
   // Narrowing the pool can strand the current prompt outside it.
   watch(pool, list => {
     if (current.value && !list.some(chord => sameChord(chord, current.value))) next()
+  })
+
+  /**
+   * Entering ear needs a chord whose name wasn't just sitting on screen, and
+   * leaving it needs the inversion worked out for the mode being entered.
+   * Explore has no prompt to redraw.
+   */
+  watch(() => settings.value.mode, mode => {
+    if (mode !== 'explore') next()
+  })
+
+  watch(() => settings.value.inversions, () => {
+    if (settings.value.mode === 'drill') next()
   })
 
   /** A click is a note: same sound, same effect on the answer. */
@@ -219,6 +299,7 @@ export function useTrainer() {
     stats,
     midi,
     current,
+    currentInversion,
     phase,
     verdict,
     selected,
@@ -229,6 +310,7 @@ export function useTrainer() {
     lampFor,
     pressKey,
     next,
+    replay: playPrompt,
     start
   }
 }

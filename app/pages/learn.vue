@@ -4,8 +4,11 @@ import { useSettings } from '~/composables/useSettings'
 import { useSynth } from '~/composables/useSynth'
 import { noteName, PITCH_CLASS_COUNT, type Chord, type Quality } from '~/composables/useTheory'
 
-const { play, unlock } = useSynth()
+const { playNotes } = useSynth()
 const { settings } = useSettings()
+
+/** Slow enough that each note lands as its own event, not as a chord. */
+const ARPEGGIO_SPACING = 140
 
 const rootItems = computed(() =>
   Array.from({ length: PITCH_CLASS_COUNT }, (_, pitchClass) => ({
@@ -39,9 +42,8 @@ const chord = computed<Chord>(() => ({ root: root.value, quality: quality.value 
 const needsRoot = computed(() => lesson.value !== 'shapes')
 
 /** Arpeggiate rather than strike together, so each note is audible on its own. */
-function playNotes(notes: number[]) {
-  unlock()
-  notes.forEach((note, index) => setTimeout(() => play(note), index * 140))
+function arpeggiate(notes: number[]) {
+  playNotes(notes, ARPEGGIO_SPACING)
 }
 
 </script>
@@ -114,8 +116,8 @@ function playNotes(notes: number[]) {
       </UFieldGroup>
     </UCard>
 
-    <LessonShapes v-if="lesson === 'shapes'" :quality="quality" @play="playNotes" />
-    <LessonInversions v-else-if="lesson === 'inversions'" :chord="chord" @play="playNotes" />
-    <LessonScale v-else :chord="chord" @play="playNotes" />
+    <LessonShapes v-if="lesson === 'shapes'" :quality="quality" @play="arpeggiate" />
+    <LessonInversions v-else-if="lesson === 'inversions'" :chord="chord" @play="arpeggiate" />
+    <LessonScale v-else :chord="chord" @play="arpeggiate" />
   </div>
 </template>

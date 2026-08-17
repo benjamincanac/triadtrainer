@@ -15,6 +15,9 @@ export function useSynth() {
   let context: AudioContext | null = null
   let master: GainNode | null = null
 
+  /** Spaced notes are queued, and a queued note must not outlive the context. */
+  const pending = new Set<ReturnType<typeof setTimeout>>()
+
   /**
    * Created lazily on the first gesture: browsers refuse to start an
    * AudioContext before a user interaction.
@@ -67,16 +70,40 @@ export function useSynth() {
     }
   }
 
+  /**
+   * Several notes at once, or one after another when spaced. A chord to find by
+   * ear has to arrive as a chord; a lesson wants it spelled out note by note.
+   */
+  function playNotes(notes: number[], spacingMs = 0) {
+    unlock()
+
+    notes.forEach((note, index) => {
+      const delay = index * spacingMs
+      if (delay <= 0) {
+        play(note)
+        return
+      }
+
+      const timer = setTimeout(() => {
+        pending.delete(timer)
+        play(note)
+      }, delay)
+      pending.add(timer)
+    })
+  }
+
   /** Call from any user gesture to get the context running before the first note. */
   function unlock() {
     ensureContext()
   }
 
   onScopeDispose(() => {
+    for (const timer of pending) clearTimeout(timer)
+    pending.clear()
     void context?.close()
     context = null
     master = null
   })
 
-  return { play, unlock }
+  return { play, playNotes, unlock }
 }
