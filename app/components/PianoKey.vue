@@ -4,7 +4,8 @@ import type { LampState } from '~/composables/useTrainer'
 
 const props = defineProps<{
   midiNote: number
-  label: string
+  /** One name, or both spellings of a black key stacked sharp over flat. */
+  labels: string[]
   black: boolean
   showLabel: boolean
   lamp: LampState
@@ -37,7 +38,7 @@ const lampClass = computed(() => {
 <template>
   <button
     type="button"
-    :aria-label="`${label} ${octave}`"
+    :aria-label="`${labels.join(' or ')} ${octave}`"
     :aria-pressed="pressed"
     :data-lamp="lamp"
     class="group flex h-full w-full cursor-pointer flex-col justify-end select-none focus-visible:z-20"
@@ -57,13 +58,19 @@ const lampClass = computed(() => {
       <span class="opacity-45">{{ finger.left }}</span>
     </span>
 
+    <!-- Both spellings stack rather than sitting side by side: a black key cap
+         is too narrow for `C#/Db` on one line. -->
     <span
       v-if="showLabel"
-      class="pointer-events-none mb-1.5 text-center font-mono leading-none tracking-tight"
+      class="pointer-events-none mb-1.5 flex-col items-center text-center font-mono leading-none tracking-tight"
       :class="black
-        ? 'hidden text-[8px] text-ivory/45 sm:block'
-        : 'text-[9px] text-ebony/45 sm:text-[10px]'"
-    >{{ label }}</span>
+        ? 'hidden text-[8px] text-ivory/45 sm:flex'
+        : 'flex text-[9px] text-ebony/45 sm:text-[10px]'"
+    >
+      <span v-for="(name, index) in labels" :key="name" :class="{ 'opacity-60': index > 0 }">
+        {{ name }}
+      </span>
+    </span>
 
     <!-- The lamp. This is the whole feedback channel: no messages, just the
          panel lighting up under the note you touched. -->

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { keyboardLayout } from '~/composables/useKeyboardLayout'
 import { useSettings } from '~/composables/useSettings'
-import { noteName, toPitchClass } from '~/composables/useTheory'
+import { noteNames, toPitchClass } from '~/composables/useTheory'
 import type { LampState } from '~/composables/useTrainer'
 
 const props = defineProps<{
@@ -23,7 +23,7 @@ function keyProps(note: number) {
   const pitchClass = toPitchClass(note)
   return {
     midiNote: note,
-    label: noteName(pitchClass, settings.value.accidentals),
+    labels: noteNames(pitchClass, settings.value.accidentals),
     showLabel: props.showLabels,
     lamp: props.lampFor(pitchClass),
     pressed: props.selected.has(pitchClass),

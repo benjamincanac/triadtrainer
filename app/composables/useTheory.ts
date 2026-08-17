@@ -29,8 +29,11 @@ export const PITCH_CLASS_COUNT = 12
 export const MAJOR_INTERVALS = [0, 4, 7] as const
 export const MINOR_INTERVALS = [0, 3, 7] as const
 
-/** How the five black keys are spelled. A preference, not a fact. */
-export type Accidentals = 'flats' | 'sharps'
+/**
+ * How the five black keys are spelled. A preference, not a fact, which is why
+ * `both` is an option: the two names are the same key either way.
+ */
+export type Accidentals = 'flats' | 'sharps' | 'both'
 
 export const FLAT_NAMES = [
   'C',
@@ -65,13 +68,26 @@ export const SHARP_NAMES = [
 export const DEFAULT_ACCIDENTALS: Accidentals = 'sharps'
 
 /**
+ * Every name a pitch class goes by under the chosen spelling: one of them, or
+ * both for a black key under `both`. White keys are spelled identically either
+ * way, so they always come back as a single name.
+ *
+ * Separate from `noteName` because a name pair has to stack on a black key cap
+ * and in a grid column, where `C#/Db` on one line doesn't fit.
+ */
+export function noteNames(pitchClass: PitchClass, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string[] {
+  const pc = normalize(pitchClass)
+  if (accidentals === 'both' && isBlackKey(pc)) return [SHARP_NAMES[pc]!, FLAT_NAMES[pc]!]
+  return [(accidentals === 'flats' ? FLAT_NAMES : SHARP_NAMES)[pc]!]
+}
+
+/**
  * The name of a pitch class in the chosen spelling. One table drives both the
  * chord prompt and the key caps, so a key never reads C# while its chord reads
  * Db.
  */
 export function noteName(pitchClass: PitchClass, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
-  const table = accidentals === 'sharps' ? SHARP_NAMES : FLAT_NAMES
-  return table[normalize(pitchClass)]!
+  return noteNames(pitchClass, accidentals).join('/')
 }
 
 /** Pitch classes that fall on a white key. Beginner mode draws roots from here. */

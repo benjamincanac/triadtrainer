@@ -2,6 +2,8 @@ import { ref, watch } from 'vue'
 import { readStored, writeStored } from './useStorage'
 import { DEFAULT_ACCIDENTALS, type Accidentals, type QualityFilter } from './useTheory'
 
+const ACCIDENTALS: Accidentals[] = ['sharps', 'flats', 'both']
+
 /** Random keeps you honest; ordered is for first learning the shapes. */
 export type DrillOrder = 'random' | 'sequential'
 
@@ -55,7 +57,7 @@ function sanitize(value: Partial<Settings> | null): Settings {
       : DEFAULTS.quality,
     hideNames: typeof value.hideNames === 'boolean' ? value.hideNames : DEFAULTS.hideNames,
     whiteRootsOnly: typeof value.whiteRootsOnly === 'boolean' ? value.whiteRootsOnly : DEFAULTS.whiteRootsOnly,
-    accidentals: value.accidentals === 'flats' || value.accidentals === 'sharps'
+    accidentals: value.accidentals && ACCIDENTALS.includes(value.accidentals)
       ? value.accidentals
       : DEFAULTS.accidentals,
     order: value.order === 'random' || value.order === 'sequential'

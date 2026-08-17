@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { formatPercent, formatSeconds, type ChordStat } from '~/composables/useStats'
 import {
   chordLabel,
-  noteName,
+  noteNames,
   PITCH_CLASS_COUNT,
   type Accidentals,
   type Quality
@@ -15,9 +15,11 @@ const props = defineProps<{
 }>()
 
 const roots = computed(() =>
-  Array.from({ length: PITCH_CLASS_COUNT }, (_, pitchClass) =>
-    noteName(pitchClass, props.accidentals)
-  )
+  Array.from({ length: PITCH_CLASS_COUNT }, (_, pitchClass) => ({
+    pitchClass,
+    // Stacked, not joined: a twelfth of the card is too narrow for `C#/Db`.
+    names: noteNames(pitchClass, props.accidentals)
+  }))
 )
 
 /**
@@ -69,11 +71,13 @@ function describe(stat: ChordStat): string {
       <div class="grid grid-cols-[1.75rem_repeat(12,minmax(0,1fr))] gap-px">
         <span />
         <span
-          v-for="name in roots"
-          :key="name"
-          class="text-center font-mono text-[9px] text-muted"
+          v-for="root in roots"
+          :key="root.pitchClass"
+          class="flex flex-col items-center text-center font-mono text-[9px] leading-tight text-muted"
         >
-          {{ name }}
+          <span v-for="(name, index) in root.names" :key="name" :class="{ 'opacity-60': index > 0 }">
+            {{ name }}
+          </span>
         </span>
 
         <template v-for="row in rows" :key="row.quality">

@@ -22,6 +22,7 @@ import {
   pickInversion,
   pitchClassSet,
   noteName,
+  noteNames,
   rootsInFamily,
   sameChord,
   sameSet,
@@ -145,6 +146,34 @@ describe('name tables', () => {
     expect(noteName(6, 'flats')).toBe('Gb')
   })
 
+  it('gives a black key both names under `both`, and a white key one', () => {
+    expect(noteNames(1, 'both')).toEqual(['C#', 'Db'])
+    expect(noteNames(6, 'both')).toEqual(['F#', 'Gb'])
+    for (const pitchClass of WHITE_ROOTS) {
+      expect(noteNames(pitchClass, 'both'), String(pitchClass)).toHaveLength(1)
+    }
+  })
+
+  it('gives one name per pitch class under a single spelling', () => {
+    for (let pitchClass = 0; pitchClass < 12; pitchClass++) {
+      expect(noteNames(pitchClass, 'sharps')).toEqual([SHARP_NAMES[pitchClass]])
+      expect(noteNames(pitchClass, 'flats')).toEqual([FLAT_NAMES[pitchClass]])
+    }
+  })
+
+  it('joins both names with a slash when it has to be one string', () => {
+    expect(noteName(1, 'both')).toBe('C#/Db')
+    expect(noteName(10, 'both')).toBe('A#/Bb')
+    // White keys read the same under every spelling, slash included.
+    expect(noteName(0, 'both')).toBe('C')
+    expect(noteName(4, 'both')).toBe('E')
+  })
+
+  it('wraps octaves under `both` like the single spellings do', () => {
+    expect(noteName(61, 'both')).toBe('C#/Db')
+    expect(noteNames(73, 'both')).toEqual(['C#', 'Db'])
+  })
+
   it('labels chords by root and quality in either spelling', () => {
     expect(chordLabel({ root: 0, quality: 'major' })).toBe('C major')
     expect(chordLabel({ root: 8, quality: 'minor' }, 'sharps')).toBe('G# minor')
@@ -152,6 +181,8 @@ describe('name tables', () => {
     expect(chordLabel({ root: 6, quality: 'major' }, 'sharps')).toBe('F# major')
     expect(chordLabel({ root: 6, quality: 'major' }, 'flats')).toBe('Gb major')
     expect(chordLabel({ root: 11, quality: 'minor' })).toBe('B minor')
+    expect(chordLabel({ root: 8, quality: 'minor' }, 'both')).toBe('G#/Ab minor')
+    expect(chordLabel({ root: 0, quality: 'major' }, 'both')).toBe('C major')
   })
 })
 

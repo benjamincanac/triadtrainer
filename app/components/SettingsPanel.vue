@@ -12,7 +12,8 @@ const QUALITIES = [
 
 const ACCIDENTALS = [
   { label: 'C#', value: 'sharps' },
-  { label: 'Db', value: 'flats' }
+  { label: 'Db', value: 'flats' },
+  { label: 'Both', value: 'both' }
 ]
 
 const ORDERS = [
