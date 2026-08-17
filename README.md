@@ -1,4 +1,4 @@
-# Triad trainer
+# Triad Trainer
 
 A personal drill for major and minor triads on a MIDI keyboard. The app names a chord, you play it,
 it validates and times you. Reaction time is the metric worth watching, not the score: the goal is
@@ -6,6 +6,24 @@ not working the chord out, it is knowing it immediately.
 
 **Learn** covers the same 24 chords three ways: the four hand shapes they sort into, the three
 inversions, and the scale each one comes from.
+
+## Modes
+
+**Drill** names a chord and times how long you take to play it. Turn on *Ask for inversions* and the
+prompt names a voicing too, so `C major / 1st inversion` wants E at the bottom.
+
+**Ear** plays a chord instead of naming one. Find it on the keyboard, and the name appears once you
+answer. `R` plays it again, and listening twice costs you the time it costs you.
+
+**Explore** is free play. It names whatever you hold, with the inversion and the fingering for both
+hands.
+
+## Progress
+
+A mastery grid shows all 24 chords by accuracy, so the weak ones are visible rather than remembered.
+Underneath the timing readouts, a day streak counts consecutive days with at least one correct
+answer, next to a daily target of 20. Everything is derived from the last 500 attempts, which makes
+it recent form rather than a lifetime record.
 
 ## Browser constraint
 
@@ -22,6 +40,10 @@ settings next to the address bar and reload.
 Everything compares sets of pitch classes, never raw MIDI notes, so octave, order and inversion are
 all irrelevant: C-E-G, G-C-E and E-G-C validate C major identically, and doubling a note changes
 nothing.
+
+Inversion drills are the one exception, and only a partial one. They still compare the same set,
+then additionally check the lowest note you played. Everything above the bass stays as free as it
+ever was.
 
 ## Running it
 
