@@ -24,7 +24,7 @@ const items: NavigationMenuItem[][] = [
           <TrainerMark class="h-5 w-5 shrink-0" />
 
           <span class="font-mono text-[11px] tracking-[0.25em] text-muted uppercase">
-            Triad trainer
+            Triad Trainer
           </span>
         </template>
 
