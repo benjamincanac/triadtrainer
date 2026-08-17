@@ -68,10 +68,11 @@ function play(root: number) {
     </p>
 
     <div class="grid gap-2.5 sm:grid-cols-2">
-      <article
+      <UCard
         v-for="group in families"
         :key="group.family"
-        class="flex flex-col gap-2 rounded-lg border border-default bg-elevated p-3"
+        as="article"
+        :ui="{ body: 'flex flex-col gap-2' }"
       >
         <div class="flex items-baseline justify-between gap-2">
           <h3 class="font-mono text-xs tracking-wide text-highlighted">
@@ -107,7 +108,7 @@ function play(root: number) {
         <p class="font-mono text-[10px] text-dimmed">
           e.g. {{ chordLabel(group.example, settings.accidentals) }} = {{ group.exampleNames.join(' ') }}
         </p>
-      </article>
+      </UCard>
     </div>
   </section>
 </template>

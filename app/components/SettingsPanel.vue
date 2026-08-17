@@ -49,11 +49,7 @@ const SWITCH_UI = {
 </script>
 
 <template>
-  <section class="flex flex-col gap-5 rounded-lg border border-default bg-elevated p-4">
-    <h2 class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
-      Settings
-    </h2>
-
+  <UCard title="Settings" :ui="{ body: 'flex flex-col gap-2' }">
     <URadioGroup
       v-model="quality"
       :items="QUALITIES"
@@ -89,9 +85,5 @@ const SWITCH_UI = {
 
     <USwitch v-model="hideNames" label="Hide note names" :ui="SWITCH_UI" />
     <USwitch v-model="whiteRootsOnly" label="White-key roots only" :ui="SWITCH_UI" />
-
-    <p class="font-mono text-[10px] leading-relaxed text-dimmed">
-      Press <UKbd value="space" size="sm" /> to skip to the next chord.
-    </p>
-  </section>
+  </UCard>
 </template>

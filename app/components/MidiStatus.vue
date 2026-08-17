@@ -58,7 +58,7 @@ const value = computed({
 </script>
 
 <template>
-  <section class="flex flex-col gap-3 rounded-lg border border-default bg-elevated p-4">
+  <UCard as="section" :ui="{ body: 'flex flex-col gap-3' }">
     <div class="flex items-start gap-3">
       <span
         class="mt-1 size-2 shrink-0 rounded-full transition-colors"
@@ -88,5 +88,5 @@ const value = computed({
     <p v-else-if="inputs.length === 1" class="font-mono text-[10px] text-dimmed">
       {{ inputs[0]!.name }}
     </p>
-  </section>
+  </UCard>
 </template>

@@ -65,7 +65,8 @@ function playNotes(notes: number[]) {
       }"
     />
 
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-default bg-elevated px-3 py-2.5">
+    <!-- A toolbar, not a panel: tighter vertical padding than the card default. -->
+    <UCard :ui="{ body: 'flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 sm:py-2.5' }">
       <!-- A field group is deliberately non-wrapping so its segments stay
            joined, and twelve roots are wider than a phone. Scroll the control
            rather than the page. -->
@@ -81,11 +82,12 @@ function playNotes(notes: number[]) {
           :label="item.label"
           :active="root === item.value"
           color="neutral"
-          variant="outline"
+          variant="subtle"
           active-color="primary"
-          active-variant="soft"
+          active-variant="subtle"
           :aria-pressed="root === item.value"
           class="justify-center font-mono text-[11px]"
+          :class="{ 'z-1': root === item.value }"
           @click="root = item.value"
         />
       </UFieldGroup>
@@ -101,15 +103,16 @@ function playNotes(notes: number[]) {
           :label="option.label"
           :active="quality === option.value"
           color="neutral"
-          variant="outline"
+          variant="subtle"
           active-color="primary"
-          active-variant="soft"
+          active-variant="subtle"
           :aria-pressed="quality === option.value"
           class="justify-center font-mono text-[11px]"
+          :class="{ 'z-1': quality === option.value }"
           @click="quality = option.value"
         />
       </UFieldGroup>
-    </div>
+    </UCard>
 
     <LessonShapes v-if="lesson === 'shapes'" :quality="quality" @play="playNotes" />
     <LessonInversions v-else-if="lesson === 'inversions'" :chord="chord" @play="playNotes" />

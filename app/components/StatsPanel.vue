@@ -19,7 +19,8 @@ const readouts = computed(() => [
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-default bg-accented sm:grid-cols-4">
+  <!-- `gap-px` over the accented body is what draws the hairlines between tiles. -->
+  <UCard :ui="{ body: 'grid grid-cols-2 gap-px bg-accented p-0 sm:p-0 sm:grid-cols-4' }">
     <div
       v-for="readout in readouts"
       :key="readout.label"
@@ -32,5 +33,5 @@ const readouts = computed(() => [
         {{ readout.value }}
       </span>
     </div>
-  </div>
+  </UCard>
 </template>

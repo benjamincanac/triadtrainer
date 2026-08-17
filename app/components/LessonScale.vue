@@ -44,7 +44,7 @@ const relative = computed<Chord>(() =>
       seven notes is what makes it findable without counting semitones.
     </p>
 
-    <div class="flex flex-col gap-3 rounded-lg border border-default bg-elevated p-3">
+    <UCard :ui="{ body: 'flex flex-col gap-3' }">
       <div class="flex items-baseline justify-between gap-2">
         <h3 class="font-mono text-xs text-highlighted">
           {{ noteName(chord.root, settings.accidentals) }} {{ chord.quality }} scale
@@ -91,6 +91,6 @@ const relative = computed<Chord>(() =>
         The same seven notes spell {{ chordLabel(relative, settings.accidentals) }}, its relative
         {{ relative.quality }}.
       </p>
-    </div>
+    </UCard>
   </section>
 </template>

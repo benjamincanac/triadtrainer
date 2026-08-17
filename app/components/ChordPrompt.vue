@@ -15,7 +15,7 @@ const { settings } = useSettings()
 <template>
   <div class="flex flex-col items-center gap-3 text-center">
     <p class="font-mono text-[10px] tracking-[0.25em] text-muted uppercase">
-      Play this chord
+      Practice this chord
     </p>
 
     <p

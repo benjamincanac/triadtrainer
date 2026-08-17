@@ -72,60 +72,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <div class="flex flex-col gap-6">
+    <div class="flex justify-center">
+      <UFieldGroup size="sm" aria-label="Mode">
+        <UButton v-for="option in MODES" :key="option.value" :label="option.label" :active="settings.mode === option.value" color="neutral" variant="subtle" active-color="primary" active-variant="subtle" :aria-pressed="settings.mode === option.value" class="justify-center font-mono text-xs" :class="{ 'z-1': settings.mode === option.value }" @click="setMode(option.value)" />
+      </UFieldGroup>
+    </div>
+
     <ExploreReadout v-if="isExplore" :identified="identified" :held="selectedNotes" />
     <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" />
 
-    <div class="flex justify-center gap-2">
-      <UFieldGroup size="sm" aria-label="Mode">
-        <UButton
-          v-for="option in MODES"
-          :key="option.value"
-          :label="option.label"
-          :active="settings.mode === option.value"
-          color="neutral"
-          variant="outline"
-          active-color="primary"
-          active-variant="soft"
-          :aria-pressed="settings.mode === option.value"
-          class="justify-center font-mono text-xs"
-          @click="setMode(option.value)"
-        />
-      </UFieldGroup>
-
-      <UButton
-        :label="isExplore ? 'Clear' : 'Skip'"
-        color="neutral"
-        variant="outline"
-        size="sm"
-        class="font-mono text-xs"
-        @click="isExplore ? clearHeld() : next()"
-      />
+    <div class="flex justify-center">
+      <UButton :label="isExplore ? 'Clear' : 'Skip'" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="isExplore ? clearHeld() : next()">
+        <template #trailing>
+          <UKbd value="space" variant="subtle" size="sm" />
+        </template>
+      </UButton>
     </div>
 
-    <PianoKeyboard
-      :lamp-for="lampFor"
-      :selected="selected"
-      :show-labels="!settings.hideNames"
-      :fingers="fingers"
-      @press="pressKey"
-    />
+    <PianoKeyboard :lamp-for="lampFor" :selected="selected" :show-labels="!settings.hideNames" :fingers="fingers" @press="pressKey" />
 
-    <StatsPanel
-      v-if="!isExplore"
-      :last-ms="stats.lastMs.value"
-      :rolling-ms="stats.rollingMs.value"
-      :streak="stats.streak.value"
-      :accuracy="stats.accuracy.value"
-      :total="stats.total.value"
-    />
+    <StatsPanel v-if="!isExplore" :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" />
 
     <div class="grid items-start gap-4 md:grid-cols-3">
-      <MidiStatus
-        :state="midi.state.value"
-        :inputs="midi.inputs.value"
-        :selected-id="midi.selectedId.value"
-        @select="midi.selectInput"
-      />
+      <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />
       <SettingsPanel v-model="settings" />
       <ProgressChart v-if="!isExplore" :sessions="stats.sessions.value" />
     </div>

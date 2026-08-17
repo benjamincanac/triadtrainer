@@ -38,10 +38,11 @@ const voicings = computed(() =>
     </p>
 
     <div class="flex flex-col gap-2.5">
-      <article
+      <UCard
         v-for="voicing in voicings"
         :key="voicing.name"
-        class="grid gap-2.5 rounded-lg border border-default bg-elevated p-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:items-center"
+        as="article"
+        :ui="{ body: 'grid gap-2.5 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:items-center' }"
       >
         <div class="flex flex-col gap-1">
           <div class="flex items-baseline gap-2">
@@ -82,7 +83,7 @@ const voicings = computed(() =>
             height="h-16"
           />
         </button>
-      </article>
+      </UCard>
     </div>
   </section>
 </template>
