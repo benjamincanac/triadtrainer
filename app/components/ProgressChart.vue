@@ -68,7 +68,7 @@ const trend = computed(() => {
       </span>
     </template>
 
-    <p v-if="points.length < 2" class="font-mono text-[11px] text-muted">
+    <p v-if="points.length < 2" class="font-mono text-[11px] text-dimmed">
       Two sessions needed before the curve means anything.
     </p>
 

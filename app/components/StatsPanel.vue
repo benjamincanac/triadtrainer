@@ -41,18 +41,18 @@ const goalValue = computed(() => Math.min(props.todayCorrect, props.dailyGoal))
 
 <template>
   <!-- `gap-px` over the accented body is what draws the hairlines between cells. -->
-  <UCard title="Session" :ui="{ body: 'grid grid-cols-2 gap-px bg-accented p-0 sm:p-0' }">
+  <UCard title="Session" :ui="{ header: 'pb-2', body: 'grid grid-cols-2 gap-px bg-accented p-0 sm:p-0 border-t border-accented' }">
     <div
       v-for="readout in readouts"
       :key="readout.label"
-      class="flex items-baseline justify-between gap-2 bg-elevated px-3 py-2"
+      class="flex items-baseline justify-between gap-2 bg-elevated px-4 py-2"
       :title="readout.title"
     >
       <span class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
         {{ readout.label }}
       </span>
       <span
-        class="font-mono tabular-nums text-sm leading-none"
+        class="font-mono tabular-nums text-xs leading-none"
         :class="readout.muted ? 'text-muted' : 'text-highlighted'"
       >
         {{ readout.value }}
@@ -60,7 +60,7 @@ const goalValue = computed(() => Math.min(props.todayCorrect, props.dailyGoal))
     </div>
 
     <!-- Spanning both columns picks up the same hairline as the cells above. -->
-    <div class="col-span-2 flex items-center gap-3 bg-elevated px-3 py-2.5">
+    <div class="col-span-2 flex items-center gap-3 bg-elevated px-4 py-2.5">
       <span class="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">
         Goal
       </span>

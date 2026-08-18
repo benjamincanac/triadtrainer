@@ -62,7 +62,7 @@ function describe(stat: ChordStat): string {
       <span class="tabular-nums lowercase">{{ played }} / {{ stats.length }} chords</span>
     </template>
 
-    <p v-if="played === 0" class="font-mono text-[11px] text-muted">
+    <p v-if="played === 0" class="font-mono text-[11px] text-dimmed">
       The grid fills in as you drill.
     </p>
 

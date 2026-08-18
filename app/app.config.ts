@@ -8,7 +8,6 @@ export default defineAppConfig({
     },
     card: {
       slots: {
-        root: 'divide-none',
         // `sm:px-4` keeps the header aligned with the body, which drops to
         // `sm:p-4` below.
         header: 'pb-0 sm:px-4',
@@ -18,7 +17,7 @@ export default defineAppConfig({
       variants: {
         variant: {
           subtle: {
-            root: 'ring-accented bg-elevated'
+            root: 'ring-accented bg-elevated divide-transparent'
           }
         }
       },
