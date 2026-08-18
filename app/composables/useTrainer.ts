@@ -25,6 +25,8 @@ import {
 /** Right answers roll straight on; wrong ones hold long enough to read. */
 const ADVANCE_DELAY = 750
 const REVEAL_DELAY = 1400
+/** Ear training names the chord on the way out, so a right answer has to be read too. */
+const EAR_ADVANCE_DELAY = 1600
 
 export type Phase = 'awaiting' | 'correct' | 'wrong'
 
@@ -214,8 +216,10 @@ export function useTrainer() {
     phase.value = ok ? 'correct' : 'wrong'
     stats.record(chord, ms, ok, { inversion, ear: settings.value.mode === 'ear' })
 
+    const advance = settings.value.mode === 'ear' ? EAR_ADVANCE_DELAY : ADVANCE_DELAY
+
     clearTimer()
-    timer = setTimeout(ok ? next : retry, ok ? ADVANCE_DELAY : REVEAL_DELAY)
+    timer = setTimeout(ok ? next : retry, ok ? advance : REVEAL_DELAY)
   }
 
   watch(selected, set => {

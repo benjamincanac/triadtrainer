@@ -90,7 +90,7 @@ const SWITCH_UI = {
     <USwitch v-model="whiteRootsOnly" label="White-key roots only" :ui="SWITCH_UI" />
     <!-- Drill only. Ear training asks for the chord, never for a voicing. -->
     <USwitch v-model="inversions" label="Ask for inversions" :ui="SWITCH_UI" />
-    <!-- Ear only. The drill has the name on screen the whole time. -->
-    <USwitch v-model="revealName" label="Name the answer" :ui="SWITCH_UI" />
+    <!-- Ear only, and only for a miss: a right answer is always named. -->
+    <USwitch v-model="revealName" label="Name the answer after a miss" :ui="SWITCH_UI" />
   </UCard>
 </template>

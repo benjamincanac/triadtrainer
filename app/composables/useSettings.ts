@@ -32,8 +32,9 @@ export interface Settings {
   /** Name an inversion in the prompt and grade the bass note, not just the set. */
   inversions: boolean
   /**
-   * Ear training: say what the chord was once you've answered. Off by default,
+   * Ear training: say what the chord was after a miss too. Off by default,
    * because a miss retries the same chord and being told first gives it away.
+   * A right answer names it regardless: the drill has already moved on.
    */
   revealName: boolean
   /** What the home page does. */

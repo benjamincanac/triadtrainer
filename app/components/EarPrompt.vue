@@ -13,12 +13,14 @@ const props = defineProps<{
 const { settings } = useSettings()
 
 /**
- * Never named before you answer, and only after if you've asked for it. A miss
- * retries the same chord, so naming it first hands you the retry. The lamps
- * still show which notes it was either way.
+ * Never named before you answer. A right one is named on the way out, since the
+ * next prompt is another chord and there is nothing left to give away. A miss
+ * retries the same chord, so that one only names it if you've asked for it. The
+ * lamps still show which notes it was either way.
  */
 const headline = computed(() => {
-  if (!props.chord || props.phase === 'awaiting' || !settings.value.revealName) return '?'
+  if (!props.chord || props.phase === 'awaiting') return '?'
+  if (props.phase === 'wrong' && !settings.value.revealName) return '?'
   return chordLabel(props.chord, settings.value.accidentals)
 })
 </script>
