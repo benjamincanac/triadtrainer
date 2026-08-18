@@ -37,6 +37,11 @@ export interface Settings {
    * A right answer names it regardless: the drill has already moved on.
    */
   revealName: boolean
+  /**
+   * Voice the notes coming in over MIDI. On for a silent controller, off for a
+   * digital piano that already makes its own sound.
+   */
+  echoMidi: boolean
   /** What the home page does. */
   mode: Mode
 }
@@ -49,6 +54,7 @@ const DEFAULTS: Settings = {
   order: 'random',
   inversions: false,
   revealName: false,
+  echoMidi: true,
   mode: 'drill'
 }
 
@@ -72,6 +78,7 @@ function sanitize(value: Partial<Settings> | null): Settings {
       : DEFAULTS.order,
     inversions: typeof value.inversions === 'boolean' ? value.inversions : DEFAULTS.inversions,
     revealName: typeof value.revealName === 'boolean' ? value.revealName : DEFAULTS.revealName,
+    echoMidi: typeof value.echoMidi === 'boolean' ? value.echoMidi : DEFAULTS.echoMidi,
     mode: value.mode && MODES.includes(value.mode) ? value.mode : DEFAULTS.mode
   }
 }

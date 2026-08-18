@@ -37,6 +37,7 @@ const hideNames = field('hideNames')
 const whiteRootsOnly = field('whiteRootsOnly')
 const inversions = field('inversions')
 const revealName = field('revealName')
+const echoMidi = field('echoMidi')
 
 /** Typography only — the layout is the component's own. */
 const RADIO_UI = {
@@ -92,5 +93,7 @@ const SWITCH_UI = {
     <USwitch v-model="inversions" label="Ask for inversions" :ui="SWITCH_UI" />
     <!-- Ear only, and only for a miss: a right answer is always named. -->
     <USwitch v-model="revealName" label="Name the answer after a miss" :ui="SWITCH_UI" />
+    <!-- Turn it off on a digital piano, which is already making the sound. -->
+    <USwitch v-model="echoMidi" label="Play MIDI notes" :ui="SWITCH_UI" />
   </UCard>
 </template>

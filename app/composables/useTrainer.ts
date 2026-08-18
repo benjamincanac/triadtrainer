@@ -39,7 +39,11 @@ export function useTrainer() {
   const { settings } = useSettings()
   const stats = useStats()
   const synth = useSynth()
-  const midi = useMidi(note => synth.play(note))
+  // Incoming MIDI is voiced by the app, which is what makes a silent controller
+  // playable. An instrument with a voice of its own would only be doubled.
+  const midi = useMidi(note => {
+    if (settings.value.echoMidi) synth.play(note)
+  })
 
   const current = ref<Chord | null>(null)
   const phase = ref<Phase>('awaiting')
