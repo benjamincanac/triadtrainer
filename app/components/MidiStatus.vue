@@ -52,6 +52,13 @@ const COPY: Record<MidiState, { lamp: string, label: string, title: string, deta
 
 const copy = computed(() => COPY[props.state])
 
+const selectedName = computed(() =>
+  props.inputs.find(input => input.id === props.selectedId)?.name
+)
+
+/** Once a device is talking, its name says more on the rail than "MIDI ready". */
+const railLabel = computed(() => selectedName.value ?? copy.value.label)
+
 const deviceItems = computed(() =>
   props.inputs.map(input => ({ label: input.name, value: input.id }))
 )
@@ -71,7 +78,7 @@ const value = computed({
     <template #trigger>
       <UButton color="neutral" variant="ghost" size="sm" :aria-label="copy.title" class="font-mono text-[11px] text-muted">
         <span class="size-2 shrink-0 rounded-full transition-colors" :class="copy.lamp" aria-hidden="true" />
-        <span class="hidden sm:inline">{{ copy.label }}</span>
+        <span class="hidden max-w-40 truncate sm:inline">{{ railLabel }}</span>
       </UButton>
     </template>
 
