@@ -35,7 +35,7 @@ const headline = computed(() => {
     </p>
 
     <p
-      class="font-serif text-5xl leading-none italic transition-colors duration-200 sm:text-7xl"
+      class="font-serif text-[clamp(2.75rem,min(11vw,8vh),4.5rem)] leading-none italic transition-colors duration-200"
       :class="identified ? 'text-ok' : 'text-muted'"
     >
       {{ headline }}

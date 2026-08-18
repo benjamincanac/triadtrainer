@@ -7,7 +7,7 @@
     -->
     <TrainerBoard />
     <template #fallback>
-      <div class="flex min-h-[520px] items-center justify-center">
+      <div class="flex flex-1 items-center justify-center">
         <p class="font-mono text-[11px] tracking-[0.2em] text-muted uppercase">
           Loading
         </p>

@@ -53,9 +53,10 @@ const fingers = computed(() => {
 
 /**
  * Space advances. It has to be intercepted globally, and suppressed when focus
- * sits on a control, otherwise it would also activate the focused button.
+ * sits on a control or inside an open panel, otherwise it would also activate
+ * whatever is focused there.
  */
-const INTERACTIVE = 'input, textarea, select, button, [contenteditable], [role="switch"], [role="combobox"]'
+const INTERACTIVE = 'input, textarea, select, button, [contenteditable], [role="switch"], [role="combobox"], [role="dialog"]'
 
 function onKeydown(event: KeyboardEvent) {
   if (event.code !== 'Space' && event.code !== 'KeyR') return
@@ -85,41 +86,62 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <div class="flex justify-center">
-      <UFieldGroup size="sm" aria-label="Mode">
-        <UButton v-for="option in MODES" :key="option.value" :label="option.label" :active="settings.mode === option.value" color="neutral" variant="subtle" active-color="primary" active-variant="subtle" :aria-pressed="settings.mode === option.value" class="justify-center font-mono text-xs" :class="{ 'z-1': settings.mode === option.value }" @click="setMode(option.value)" />
-      </UFieldGroup>
-    </div>
-
-    <EarPrompt v-if="isEar" :chord="current" :phase="phase" :verdict="verdict" />
-    <ExploreReadout v-else-if="isExplore" :identified="identified" :held="selectedNotes" />
-    <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" :inversion="currentInversion" />
-
-    <div class="flex justify-center gap-2">
-      <UButton v-if="isEar" label="Replay" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="replay()">
-        <template #trailing>
-          <UKbd value="R" variant="subtle" size="sm" />
-        </template>
-      </UButton>
-
-      <UButton :label="isExplore ? 'Clear' : 'Skip'" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="isExplore ? clearHeld() : next()">
-        <template #trailing>
-          <UKbd value="space" variant="subtle" size="sm" />
-        </template>
-      </UButton>
-    </div>
-
-    <PianoKeyboard :lamp-for="lampFor" :selected="selected" :show-labels="!settings.hideNames" :fingers="fingers" @press="pressKey" />
-
-    <StatsPanel v-if="!isExplore" :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" :day-streak="stats.dayStreak.value.length" :streak-active-today="stats.dayStreak.value.activeToday" :today-correct="stats.todayCorrect.value" :daily-goal="DAILY_GOAL" />
-
-    <MasteryGrid v-if="!isExplore" :stats="stats.perChord.value" :accidentals="settings.accidentals" />
-
-    <div class="grid items-start gap-4 md:grid-cols-3">
+  <!--
+    A board, not a document: the rail, the readouts, the prompt and the key bed
+    divide one viewport between them. Only the prompt flexes, so nothing here
+    has to scroll and the keys stay put whatever the mode.
+  -->
+  <div class="flex min-h-0 flex-1 flex-col gap-3">
+    <div class="relative flex shrink-0 items-center justify-between gap-2">
       <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />
-      <SettingsPanel v-model="settings" />
-      <ProgressChart v-if="!isExplore" :sessions="stats.sessions.value" />
+
+      <!-- Taken out of the flow so the two clusters beside it can grow without
+           dragging the mode switch off the centre of the board. -->
+      <UFieldGroup size="xs" aria-label="Mode" class="absolute left-1/2 -translate-x-1/2">
+        <UButton v-for="option in MODES" :key="option.value" :label="option.label" :active="settings.mode === option.value" color="neutral" variant="subtle" active-color="primary" active-variant="subtle" :aria-pressed="settings.mode === option.value" class="justify-center font-mono text-[11px]" :class="{ 'z-1': settings.mode === option.value }" @click="setMode(option.value)" />
+      </UFieldGroup>
+
+      <!-- The one panel that isn't a readout. The device it plays sits at the
+           other end of the rail. -->
+      <PanelPopover label="Settings" icon="i-lucide-sliders-horizontal" width="w-[min(20rem,calc(100vw-2rem))]">
+        <SettingsPanel v-model="settings" />
+      </PanelPopover>
     </div>
+
+    <!-- The prompt takes whatever height is left over, so it sits centred
+         between the readouts and the key bed on any window. -->
+    <div class="flex min-h-0 flex-1 flex-col items-center justify-center gap-6">
+      <EarPrompt v-if="isEar" :chord="current" :phase="phase" :verdict="verdict" />
+      <ExploreReadout v-else-if="isExplore" :identified="identified" :held="selectedNotes" />
+      <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" :inversion="currentInversion" />
+
+      <div class="flex justify-center gap-2">
+        <UButton v-if="isEar" label="Replay" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="replay()">
+          <template #trailing>
+            <UKbd value="R" variant="subtle" size="sm" />
+          </template>
+        </UButton>
+
+        <UButton :label="isExplore ? 'Clear' : 'Skip'" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="isExplore ? clearHeld() : next()">
+          <template #trailing>
+            <UKbd value="space" variant="subtle" size="sm" />
+          </template>
+        </UButton>
+      </div>
+    </div>
+
+        <!-- The whole record of how it's going, read between chords rather than
+         during one. Above the prompt rather than below the keys: explore keeps
+         no score, and dropping it from up here grows the space around the
+         prompt instead of sliding the key bed down the board. -->
+         <div v-if="!isExplore" class="grid shrink-0 gap-3 sm:grid-cols-3">
+      <StatsPanel :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" :day-streak="stats.dayStreak.value.length" :streak-active-today="stats.dayStreak.value.activeToday" :today-correct="stats.todayCorrect.value" :daily-goal="DAILY_GOAL" />
+
+      <MasteryGrid :stats="stats.perChord.value" :accidentals="settings.accidentals" />
+
+      <ProgressChart :sessions="stats.sessions.value" />
+    </div>
+
+    <PianoKeyboard class="shrink-0" :lamp-for="lampFor" :selected="selected" :show-labels="!settings.hideNames" :fingers="fingers" @press="pressKey" />
   </div>
 </template>

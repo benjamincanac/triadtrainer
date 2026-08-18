@@ -21,7 +21,7 @@ const { settings } = useSettings()
     </p>
 
     <p
-      class="font-serif text-5xl leading-none italic transition-colors duration-200 sm:text-7xl"
+      class="font-serif text-[clamp(2.75rem,min(11vw,8vh),4.5rem)] leading-none italic transition-colors duration-200"
       :class="{
         'text-highlighted': phase === 'awaiting',
         'text-ok': phase === 'correct',

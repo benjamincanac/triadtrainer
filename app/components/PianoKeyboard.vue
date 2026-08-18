@@ -39,7 +39,11 @@ function keyProps(note: number) {
     <!-- felt strip along the top, like the one on a real key bed -->
     <div class="mb-2 h-1 w-full rounded-full bg-linear-to-r from-bad/25 via-bad/40 to-bad/25" />
 
-    <div class="relative h-[clamp(120px,30vw,220px)] w-full">
+    <!-- The key bed takes what the rest of the board leaves: `36rem` is the
+         rail, the prompt, the readouts and the gaps between them. Subtracting
+         it is what keeps a short window from scrolling, and what lets a tall
+         one spend the slack on bigger keys instead of on whitespace. -->
+    <div class="relative h-[clamp(104px,min(30vw,calc(100dvh-36rem)),240px)] w-full">
       <div class="absolute inset-0 flex gap-px">
         <PianoKey
           v-for="note in whiteNotes"
