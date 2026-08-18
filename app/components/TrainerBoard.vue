@@ -24,6 +24,7 @@ const {
   lampFor,
   pressKey,
   next,
+  reveal,
   replay,
   start,
   identified,
@@ -52,14 +53,14 @@ const fingers = computed(() => {
 })
 
 /**
- * Space advances. It has to be intercepted globally, and suppressed when focus
- * sits on a control or inside an open panel, otherwise it would also activate
- * whatever is focused there.
+ * Space advances, R replays, A gives the answer. They have to be intercepted
+ * globally, and suppressed when focus sits on a control or inside an open panel,
+ * otherwise they would also activate whatever is focused there.
  */
 const INTERACTIVE = 'input, textarea, select, button, [contenteditable], [role="switch"], [role="combobox"], [role="dialog"]'
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.code !== 'Space' && event.code !== 'KeyR') return
+  if (event.code !== 'Space' && event.code !== 'KeyR' && event.code !== 'KeyA') return
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return
   if ((event.target as HTMLElement | null)?.closest?.(INTERACTIVE)) return
 
@@ -74,7 +75,10 @@ function onKeydown(event: KeyboardEvent) {
   if (isExplore.value) return
 
   event.preventDefault()
-  next()
+
+  // A gives up on the current chord; space moves past it.
+  if (event.code === 'KeyA') reveal()
+  else next()
 }
 
 onMounted(() => {
@@ -119,6 +123,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         <UButton v-if="isEar" label="Replay" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="replay()">
           <template #trailing>
             <UKbd value="R" variant="subtle" size="sm" />
+          </template>
+        </UButton>
+
+        <UButton v-if="!isExplore" label="Answer" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="reveal()">
+          <template #trailing>
+            <UKbd value="A" variant="subtle" size="sm" />
           </template>
         </UButton>
 

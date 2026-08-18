@@ -27,8 +27,10 @@ const ADVANCE_DELAY = 750
 const REVEAL_DELAY = 1400
 /** Ear training names the chord on the way out, so a right answer has to be read too. */
 const EAR_ADVANCE_DELAY = 1600
+/** An answer you asked for is being studied, not glanced at. */
+const ANSWER_DELAY = 2500
 
-export type Phase = 'awaiting' | 'correct' | 'wrong'
+export type Phase = 'awaiting' | 'correct' | 'wrong' | 'revealed'
 
 /** What a key's lamp is doing. */
 export type LampState = 'off' | 'selected' | 'correct' | 'wrong' | 'revealed'
@@ -114,10 +116,22 @@ export function useTrainer() {
 
   const verdict = computed(() => {
     if (phase.value === 'correct') return 'Correct'
-    if (phase.value !== 'wrong') return ''
 
     const chord = current.value
     const inversion = currentInversion.value
+
+    if (phase.value === 'revealed') {
+      // Same blind spot as a wrong bass: the lamps light per pitch class, so the
+      // voicing the prompt asked for has to be said rather than shown.
+      if (chord && inversion) {
+        const bass = noteName(inversionBass(chord, inversion), settings.value.accidentals)
+        return `Lit on the keys, ${bass} at the bottom`
+      }
+      return 'The answer is lit on the keys'
+    }
+
+    if (phase.value !== 'wrong') return ''
+
     if (wrongBass.value && chord && inversion) {
       // The lamps can't show this one: they light per pitch class, so all three
       // of them are already green. Which note goes at the bottom has to be said.
@@ -187,6 +201,30 @@ export function useTrainer() {
 
     rearm()
     playPrompt()
+  }
+
+  /**
+   * Stuck: light the answer and take the miss for it, since a chord you had to
+   * be shown isn't one you knew. The same prompt comes back afterwards, so it
+   * still has to be played.
+   */
+  function reveal() {
+    const chord = current.value
+    if (!chord || settings.value.mode === 'explore' || phase.value !== 'awaiting') return
+
+    const ms = performance.now() - startedAt
+    // Nothing was answered, so the lamps show the answer on its own rather than
+    // grading whatever was being held when the button was pressed.
+    answered.value = new Set()
+    wrongBass.value = false
+    phase.value = 'revealed'
+    stats.record(chord, ms, false, {
+      inversion: currentInversion.value,
+      ear: settings.value.mode === 'ear'
+    })
+
+    clearTimer()
+    timer = setTimeout(retry, ANSWER_DELAY)
   }
 
   /** Same chord again after a miss. */
@@ -282,7 +320,7 @@ export function useTrainer() {
     const inTarget = target.value.has(pitchClass)
 
     if (wasPlayed) return inTarget ? 'correct' : 'wrong'
-    if (phase.value === 'wrong' && inTarget) return 'revealed'
+    if (inTarget && phase.value !== 'correct') return 'revealed'
     return 'off'
   }
 
@@ -315,6 +353,7 @@ export function useTrainer() {
     lampFor,
     pressKey,
     next,
+    reveal,
     replay: playPrompt,
     start
   }

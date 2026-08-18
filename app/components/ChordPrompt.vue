@@ -23,7 +23,7 @@ const { settings } = useSettings()
     <p
       class="font-serif text-[clamp(2.75rem,min(11vw,8vh),4.5rem)] leading-none italic transition-colors duration-200"
       :class="{
-        'text-highlighted': phase === 'awaiting',
+        'text-highlighted': phase === 'awaiting' || phase === 'revealed',
         'text-ok': phase === 'correct',
         'text-bad': phase === 'wrong'
       }"
@@ -46,7 +46,11 @@ const { settings } = useSettings()
       aria-live="polite"
       aria-atomic="true"
       class="h-4 font-mono text-[11px] tracking-wide"
-      :class="phase === 'correct' ? 'text-ok' : 'text-bad'"
+      :class="{
+        'text-ok': phase === 'correct',
+        'text-bad': phase === 'wrong',
+        'text-primary': phase === 'revealed'
+      }"
     >
       {{ verdict }}
     </p>

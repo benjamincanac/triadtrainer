@@ -14,9 +14,10 @@ const { settings } = useSettings()
 
 /**
  * Never named before you answer. A right one is named on the way out, since the
- * next prompt is another chord and there is nothing left to give away. A miss
- * retries the same chord, so that one only names it if you've asked for it. The
- * lamps still show which notes it was either way.
+ * next prompt is another chord and there is nothing left to give away, and so is
+ * one you asked to be shown. A miss retries the same chord, so that one only
+ * names it if you've asked for it. The lamps still show which notes it was
+ * either way.
  */
 const headline = computed(() => {
   if (!props.chord || props.phase === 'awaiting') return '?'
@@ -38,7 +39,8 @@ const headline = computed(() => {
       :class="{
         'text-muted': phase === 'awaiting',
         'text-ok': phase === 'correct',
-        'text-bad': phase === 'wrong'
+        'text-bad': phase === 'wrong',
+        'text-primary': phase === 'revealed'
       }"
     >
       {{ headline }}
@@ -48,7 +50,11 @@ const headline = computed(() => {
       aria-live="polite"
       aria-atomic="true"
       class="h-4 font-mono text-[11px] tracking-wide"
-      :class="phase === 'correct' ? 'text-ok' : 'text-bad'"
+      :class="{
+        'text-ok': phase === 'correct',
+        'text-bad': phase === 'wrong',
+        'text-primary': phase === 'revealed'
+      }"
     >
       {{ verdict }}
     </p>
