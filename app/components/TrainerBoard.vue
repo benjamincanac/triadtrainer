@@ -102,7 +102,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <!-- Taken out of the flow so the two clusters beside it can grow without
            dragging the mode switch off the centre of the board. -->
       <UFieldGroup size="xs" aria-label="Mode" class="absolute left-1/2 -translate-x-1/2">
-        <UButton v-for="option in MODES" :key="option.value" :label="option.label" :active="settings.mode === option.value" color="neutral" variant="subtle" active-color="primary" active-variant="subtle" :aria-pressed="settings.mode === option.value" class="justify-center font-mono text-[11px]" :class="{ 'z-1': settings.mode === option.value }" @click="setMode(option.value)" />
+        <UButton v-for="option in MODES" :key="option.value" :label="option.label" :active="settings.mode === option.value" color="neutral" variant="subtle" active-color="primary" active-variant="subtle" size="sm" :aria-pressed="settings.mode === option.value" class="justify-center font-mono text-[11px]" :class="{ 'z-1': settings.mode === option.value }" @click="setMode(option.value)" />
       </UFieldGroup>
 
       <!-- The one panel that isn't a readout. The device it plays sits at the
