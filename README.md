@@ -26,6 +26,15 @@ Underneath the timing readouts, a day streak counts consecutive days with at lea
 answer, next to a daily target of 20. Everything is derived from the last 500 attempts, which makes
 it recent form rather than a lifetime record.
 
+## Sound
+
+The keys play a real piano: fourteen samples from Alexander Holm's [Salamander Grand
+Piano](https://archive.org/details/SalamanderGrandPianoV3) (CC BY 3.0), sitting a minor third apart
+and pitched at most a semitone to reach the notes between them. They live in `public/piano`, about
+500 KB, and decode in the background on load rather than waiting for a click. Until they land, and if
+they never do, a synthesised voice covers every note, so the drill still works offline and on a
+browser that refuses the fetch. See `public/piano/NOTICE.md`.
+
 ## Browser constraint
 
 **Web MIDI only exists in Chromium** (Chrome, Edge, Arc, Brave). Firefox and Safari ship no

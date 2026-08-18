@@ -59,3 +59,4 @@ The migration strategy is **additive optional fields plus a filter-on-read type 
 - The on-screen keyboard spans two octaves, C4 to B5 (MIDI 60-83). Voicings above 83 cannot be drawn.
 - Lamps are keyed by **pitch class**, not by note: `PianoKeyboard` calls `lampFor(pitchClass)`, so both octaves of a pitch class always light together. Showing one exact voicing is not possible without reworking that API.
 - Synth output never feeds back into the played-notes set, so audio playback cannot trigger validation.
+- `useSynth` plays recorded piano samples from `public/piano` (CC BY 3.0, see the NOTICE there) and falls back to a synthesised voice whenever they haven't loaded or can't be fetched. Keep the fallback: the drill has to make a sound offline. Samples are decoded through an `OfflineAudioContext`, which needs no user gesture, so they are ready before the first keypress.
