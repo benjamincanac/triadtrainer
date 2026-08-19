@@ -3,6 +3,11 @@
   "private": true,
   "type": "module",
   "description": "Triad trainer for a USB MIDI keyboard. Names a chord, you play it, it times you.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benjamincanac/triadtrainer.git"
+  },
+  "homepage": "https://triadtrainer.vercel.app/",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
