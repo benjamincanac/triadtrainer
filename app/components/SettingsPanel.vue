@@ -53,7 +53,7 @@ const SWITCH_UI = {
 </script>
 
 <template>
-  <UCard title="Settings" :ui="{ body: 'flex flex-col gap-2' }">
+  <UCard title="Settings" :ui="{ body: 'flex flex-col gap-3' }">
     <URadioGroup
       v-model="quality"
       :items="QUALITIES"

@@ -45,7 +45,6 @@ const needsRoot = computed(() => lesson.value !== 'shapes')
 function arpeggiate(notes: number[]) {
   playNotes(notes, ARPEGGIO_SPACING)
 }
-
 </script>
 
 <template>
@@ -54,18 +53,7 @@ function arpeggiate(notes: number[]) {
       `content: false` renders the tab list only, so the control row can sit
       between the tabs and the lesson. Pick a lesson, then configure it.
     -->
-    <UTabs
-      v-model="lesson"
-      :items="LESSONS"
-      :content="false"
-      color="neutral"
-      :ui="{
-        list: 'w-full bg-elevated',
-        // The keyboard is the loud element; a solid pill here competes with it.
-        indicator: 'bg-primary/15 ring ring-primary/30',
-        trigger: 'flex-1 font-mono text-xs data-[state=active]:text-primary'
-      }"
-    />
+    <UTabs v-model="lesson" :items="LESSONS" :content="false" />
 
     <!-- A toolbar, not a panel: tighter vertical padding than the card default. -->
     <UCard :ui="{ body: 'flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 sm:py-2.5' }">

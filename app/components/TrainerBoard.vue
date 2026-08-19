@@ -5,11 +5,11 @@ import { DAILY_GOAL } from '~/composables/useStats'
 import { fingering } from '~/composables/useTheory'
 import { useTrainer } from '~/composables/useTrainer'
 
-const MODES = [
+const MODES: { label: string, value: Settings['mode'] }[] = [
   { label: 'Drill', value: 'drill' },
   { label: 'Ear', value: 'ear' },
   { label: 'Explore', value: 'explore' }
-] as const
+]
 
 const {
   settings,
@@ -34,10 +34,14 @@ const {
 const isExplore = computed(() => settings.value.mode === 'explore')
 const isEar = computed(() => settings.value.mode === 'ear')
 
-function setMode(mode: Settings['mode']) {
-  settings.value = { ...settings.value, mode }
-  clearHeld()
-}
+/** Writable, so switching also empties whatever was being held in the old mode. */
+const mode = computed({
+  get: () => settings.value.mode,
+  set: (value: string | number) => {
+    settings.value = { ...settings.value, mode: value as Settings['mode'] }
+    clearHeld()
+  }
+})
 
 /** Only explore prints fingers on the keys; the drill would be giving answers. */
 const fingers = computed(() => {
@@ -59,10 +63,18 @@ const fingers = computed(() => {
  */
 const INTERACTIVE = 'input, textarea, select, button, [contenteditable], [role="switch"], [role="combobox"], [role="dialog"]'
 
+/**
+ * The board's own controls are the exception: clicking Skip or a mode tab leaves
+ * focus on it, and it would then swallow every shortcut. Space is prevented
+ * further down, before the browser turns it into a second activation.
+ */
+const SHORTCUTS_SAFE = '[data-shortcuts]'
+
 function onKeydown(event: KeyboardEvent) {
   if (event.code !== 'Space' && event.code !== 'KeyR' && event.code !== 'KeyA') return
   if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return
-  if ((event.target as HTMLElement | null)?.closest?.(INTERACTIVE)) return
+  const focused = (event.target as HTMLElement | null)?.closest?.(INTERACTIVE)
+  if (focused && !focused.closest(SHORTCUTS_SAFE)) return
 
   // R hears the prompt again, and only ear mode has one to hear.
   if (event.code === 'KeyR') {
@@ -96,20 +108,22 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     has to scroll and the keys stay put whatever the mode.
   -->
   <div class="flex min-h-0 flex-1 flex-col gap-3">
-    <div class="relative flex shrink-0 items-center justify-between gap-2">
-      <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />
+    <div class="relative grid grid-cols-3 shrink-0 gap-2">
+      <div>
+        <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />
+      </div>
 
       <!-- Taken out of the flow so the two clusters beside it can grow without
            dragging the mode switch off the centre of the board. -->
-      <UFieldGroup size="xs" aria-label="Mode" class="absolute left-1/2 -translate-x-1/2">
-        <UButton v-for="option in MODES" :key="option.value" :label="option.label" :active="settings.mode === option.value" color="neutral" variant="subtle" active-color="primary" active-variant="subtle" size="sm" :aria-pressed="settings.mode === option.value" class="justify-center font-mono text-[11px]" :class="{ 'z-1': settings.mode === option.value }" @click="setMode(option.value)" />
-      </UFieldGroup>
+      <UTabs v-model="mode" :items="MODES" :content="false" size="sm" class="-my-1" data-shortcuts />
 
-      <!-- The one panel that isn't a readout. The device it plays sits at the
+      <div class="flex justify-end">
+        <!-- The one panel that isn't a readout. The device it plays sits at the
            other end of the rail. -->
-      <PanelPopover label="Settings" icon="i-lucide-sliders-horizontal" width="w-[min(20rem,calc(100vw-2rem))]">
-        <SettingsPanel v-model="settings" />
-      </PanelPopover>
+        <PanelPopover label="Settings" icon="i-lucide-sliders-horizontal" width="w-[min(20rem,calc(100vw-2rem))]">
+          <SettingsPanel v-model="settings" />
+        </PanelPopover>
+      </div>
     </div>
 
     <!-- The prompt takes whatever height is left over, so it sits centred
@@ -119,7 +133,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <ExploreReadout v-else-if="isExplore" :identified="identified" :held="selectedNotes" />
       <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" :inversion="currentInversion" />
 
-      <div class="flex justify-center gap-2">
+      <div data-shortcuts class="flex justify-center gap-2">
         <UButton v-if="isEar" label="Replay" color="neutral" variant="outline" size="sm" class="font-mono text-xs" @click="replay()">
           <template #trailing>
             <UKbd value="R" variant="subtle" size="sm" />
@@ -140,17 +154,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </div>
     </div>
 
-        <!-- The whole record of how it's going, read between chords rather than
+    <!-- The whole record of how it's going, read between chords rather than
          during one. Above the prompt rather than below the keys: explore keeps
          no score, and dropping it from up here grows the space around the
          prompt instead of sliding the key bed down the board. -->
-         <div v-if="!isExplore" class="grid shrink-0 gap-3 sm:grid-cols-3">
+    <div v-if="!isExplore" class="grid shrink-0 gap-3 sm:grid-cols-3">
       <StatsPanel :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" :day-streak="stats.dayStreak.value.length" :streak-active-today="stats.dayStreak.value.activeToday" :today-correct="stats.todayCorrect.value" :daily-goal="DAILY_GOAL" />
 
       <MasteryGrid :stats="stats.perChord.value" :accidentals="settings.accidentals" />
 
       <ProgressChart :sessions="stats.sessions.value" />
     </div>
+    <div v-else class="h-40" />
 
     <PianoKeyboard class="shrink-0" :lamp-for="lampFor" :selected="selected" :show-labels="!settings.hideNames" :fingers="fingers" @press="pressKey" />
   </div>

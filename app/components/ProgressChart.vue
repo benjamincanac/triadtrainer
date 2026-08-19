@@ -104,7 +104,7 @@ const trend = computed(() => {
         />
       </svg>
 
-      <footer class="mt-2 flex items-baseline justify-between font-mono text-[10px] text-muted">
+      <footer class="mt-1.25 flex items-baseline justify-between font-mono text-[10px] text-muted">
         <span class="tabular-nums">fastest {{ formatSeconds(bounds.min) }}</span>
         <span class="tabular-nums">slowest {{ formatSeconds(bounds.max) }}</span>
       </footer>

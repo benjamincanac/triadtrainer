@@ -68,7 +68,7 @@ function describe(stat: ChordStat): string {
 
     <template v-else>
       <!-- A row label column, then one column per root. -->
-      <div class="grid grid-cols-[1.75rem_repeat(12,minmax(0,1fr))] gap-px">
+      <div class="grid grid-cols-[1.75rem_repeat(12,minmax(0,1fr))] gap-x-px gap-y-0.5 mt-2.5">
         <span />
         <span
           v-for="root in roots"
@@ -85,7 +85,7 @@ function describe(stat: ChordStat): string {
           <div
             v-for="cell in row.cells"
             :key="cell.root"
-            class="h-5 rounded-xs"
+            class="h-4 rounded-xs"
             :class="{ 'ring-1 ring-accented ring-inset': cell.accuracy === null }"
             :style="fill(cell)"
             :title="describe(cell)"
@@ -93,7 +93,7 @@ function describe(stat: ChordStat): string {
         </template>
       </div>
 
-      <footer class="mt-3 flex items-center gap-2 font-mono text-[10px] text-muted">
+      <footer class="mt-3.5 flex items-center gap-2 font-mono text-[10px] text-muted">
         <span class="tabular-nums">0 %</span>
         <span
           class="h-1 flex-1 rounded-xs"
