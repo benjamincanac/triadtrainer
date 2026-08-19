@@ -24,7 +24,7 @@ export function keyboardLayout(startNote: number, semitones: number): KeyboardLa
   const whiteNotes = notes.filter(note => !isBlackKey(note))
   const whiteWidth = 100 / whiteNotes.length
 
-  const blackKeys = notes.filter(isBlackKey).map(note => {
+  const blackKeys = notes.filter(isBlackKey).map((note) => {
     const seam = whiteNotes.filter(white => white < note).length
     const width = whiteWidth * 0.62
     return { note, left: seam * whiteWidth - width / 2, width }

@@ -41,7 +41,7 @@ export function useTrainer() {
   const synth = useSynth()
   // Incoming MIDI is voiced by the app, which is what makes a silent controller
   // playable. An instrument with a voice of its own would only be doubled.
-  const midi = useMidi(note => {
+  const midi = useMidi((note) => {
     if (settings.value.echoMidi) synth.play(note)
   })
 
@@ -264,7 +264,7 @@ export function useTrainer() {
     timer = setTimeout(ok ? next : retry, ok ? advance : REVEAL_DELAY)
   }
 
-  watch(selected, set => {
+  watch(selected, (set) => {
     // Explore is free play: no prompt, no timer, nothing to be wrong about.
     if (settings.value.mode === 'explore') return
     if (phase.value !== 'awaiting') return
@@ -279,7 +279,7 @@ export function useTrainer() {
   })
 
   // Narrowing the pool can strand the current prompt outside it.
-  watch(pool, list => {
+  watch(pool, (list) => {
     if (current.value && !list.some(chord => sameChord(chord, current.value))) next()
   })
 
@@ -288,7 +288,7 @@ export function useTrainer() {
    * leaving it needs the inversion worked out for the mode being entered.
    * Explore has no prompt to redraw.
    */
-  watch(() => settings.value.mode, mode => {
+  watch(() => settings.value.mode, (mode) => {
     if (mode !== 'explore') next()
   })
 

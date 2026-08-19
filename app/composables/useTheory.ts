@@ -181,7 +181,7 @@ export interface ChordPoolOptions {
 /** The chords the trainer can draw from, given the current settings. */
 export function chordPool(options: ChordPoolOptions = {}): Chord[] {
   const { quality = 'both', whiteRootsOnly = false } = options
-  return allChords().filter(chord => {
+  return allChords().filter((chord) => {
     if (quality !== 'both' && chord.quality !== quality) return false
     if (whiteRootsOnly && !WHITE_ROOTS.includes(chord.root)) return false
     return true

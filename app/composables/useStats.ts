@@ -152,7 +152,7 @@ export function aggregateByChord(list: Attempt[]): ChordStat[] {
     totals.set(key, row)
   }
 
-  return allChords().map(chord => {
+  return allChords().map((chord) => {
     const row = totals.get(`${chord.root}:${chord.quality}`)
     return {
       root: chord.root,

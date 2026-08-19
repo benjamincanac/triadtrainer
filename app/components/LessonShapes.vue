@@ -37,7 +37,7 @@ const COPY: Record<ShapeFamily, { title: string, blurb: string }> = {
 }
 
 const families = computed(() =>
-  SHAPE_FAMILIES.map(family => {
+  SHAPE_FAMILIES.map((family) => {
     const roots = rootsInFamily(family, props.quality)
     const example = roots[0]!
     return {

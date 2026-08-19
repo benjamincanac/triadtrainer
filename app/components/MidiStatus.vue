@@ -18,19 +18,19 @@ const emit = defineEmits<{ select: [id: string] }>()
  * `label` is what fits on the rail, `title` what the panel can afford.
  */
 const COPY: Record<MidiState, { lamp: string, label: string, title: string, detail: string }> = {
-  idle: {
+  'idle': {
     lamp: 'bg-gear-400/40',
     label: 'Connecting',
     title: 'Connecting',
     detail: 'Asking the browser for MIDI access.'
   },
-  unsupported: {
+  'unsupported': {
     lamp: 'bg-gear-400/40',
     label: 'No Web MIDI',
     title: 'No Web MIDI in this browser',
     detail: 'Web MIDI is Chromium-only. In Firefox and Safari the on-screen keyboard is the input: click the keys.'
   },
-  denied: {
+  'denied': {
     lamp: 'bg-bad',
     label: 'MIDI refused',
     title: 'MIDI permission refused',
@@ -42,7 +42,7 @@ const COPY: Record<MidiState, { lamp: string, label: string, title: string, deta
     title: 'No MIDI device',
     detail: 'Plug a keyboard in over USB and it gets picked up automatically. Clicking the keys works meanwhile.'
   },
-  ready: {
+  'ready': {
     lamp: 'bg-ok shadow-[0_0_8px_1px_var(--color-ok)]',
     label: 'MIDI ready',
     title: 'MIDI ready',

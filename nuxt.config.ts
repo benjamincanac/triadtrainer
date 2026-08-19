@@ -9,24 +9,6 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
-  ui: {
-    // The app is dark-only and sets `class="dark"` in app.head, so the
-    // colour-mode module has nothing to switch.
-    colorMode: false,
-
-    theme: {
-      // Only `primary` is used. The default also generates secondary, success,
-      // info, warning and error, none of which this app references. `neutral`
-      // is always present and isn't listed here.
-      colors: ['primary']
-    },
-
-    experimental: {
-      // Emit CSS only for the handful of components actually used.
-      componentDetection: true
-    }
-  },
-
   app: {
     head: {
       // `dark` is permanent: the app is a piece of gear, not a document, and
@@ -49,13 +31,40 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  ui: {
+    // The app is dark-only and sets `class="dark"` in app.head, so the
+    // colour-mode module has nothing to switch.
+    colorMode: false,
+
+    theme: {
+      // Only `primary` is used. The default also generates secondary, success,
+      // info, warning and error, none of which this app references. `neutral`
+      // is always present and isn't listed here.
+      colors: ['primary']
+    },
+
+    experimental: {
+      // Emit CSS only for the handful of components actually used.
+      componentDetection: true
+    }
+  },
+
+  compatibilityDate: 'latest',
+
+  eslint: {
+    config: {
+      stylistic: {
+        commaDangle: 'never',
+        braceStyle: '1tbs'
+      }
+    }
+  },
+
   fonts: {
     families: [
       { name: 'Instrument Serif', provider: 'google' },
       { name: 'IBM Plex Sans', provider: 'google' },
       { name: 'IBM Plex Mono', provider: 'google' }
     ]
-  },
-
-  compatibilityDate: 'latest'
+  }
 })
