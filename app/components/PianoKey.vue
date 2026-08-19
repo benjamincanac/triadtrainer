@@ -27,8 +27,7 @@ const lampClass = computed(() => {
     case 'wrong':
       return 'bg-bad shadow-[0_0_10px_2px_var(--color-bad)]'
     case 'revealed':
-      // The answer you should have played: present, but not claiming credit.
-      return 'bg-ok/35'
+      return 'bg-lamp shadow-[0_0_10px_2px_var(--color-lamp)]'
     default:
       return props.black ? 'bg-white/6' : 'bg-black/8'
   }
