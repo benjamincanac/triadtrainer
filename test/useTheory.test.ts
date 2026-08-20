@@ -27,7 +27,11 @@ import {
   sameChord,
   sameSet,
   scale,
+  SCALE_RUN_LENGTH,
+  scaleLabel,
   scaleNotes,
+  scaleRun,
+  scaleStep,
   shapeFamily,
   SHARP_NAMES,
   toPitchClass,
@@ -635,6 +639,98 @@ describe('scales', () => {
   it('pairs a relative major and minor on the same seven notes', () => {
     // A natural minor and C major are the white keys either way round.
     expect(new Set(scale(9, 'minor'))).toEqual(new Set(scale(0, 'major')))
+  })
+})
+
+describe('scaleRun', () => {
+  it('spells the C major run out by hand', () => {
+    expect(scaleRun(0, 'major')).toEqual([0, 2, 4, 5, 7, 9, 11, 0, 11, 9, 7, 5, 4, 2, 0])
+  })
+
+  it('spells the A minor run out by hand', () => {
+    expect(scaleRun(9, 'minor')).toEqual([9, 11, 0, 2, 4, 5, 7, 9, 7, 5, 4, 2, 0, 11, 9])
+  })
+
+  it('runs 15 steps with the tonic at 0, 7 and 14, for all 24', () => {
+    for (const chord of allChords()) {
+      const run = scaleRun(chord.root, chord.quality)
+      expect(run, chordLabel(chord)).toHaveLength(SCALE_RUN_LENGTH)
+      expect(run[0], chordLabel(chord)).toBe(chord.root)
+      expect(run[7], chordLabel(chord)).toBe(chord.root)
+      expect(run[14], chordLabel(chord)).toBe(chord.root)
+    }
+  })
+
+  it('comes back down the way it went up', () => {
+    for (const chord of allChords()) {
+      const run = scaleRun(chord.root, chord.quality)
+      for (let i = 0; i < run.length; i++) {
+        expect(run[i], `${chordLabel(chord)} step ${i}`).toBe(run[run.length - 1 - i])
+      }
+    }
+  })
+
+  it('opens with the scale itself', () => {
+    for (const chord of allChords()) {
+      expect(scaleRun(chord.root, chord.quality).slice(0, 7)).toEqual(scale(chord.root, chord.quality))
+    }
+  })
+
+  it('never repeats a pitch class on consecutive steps', () => {
+    // What makes note-on-only grading safe: a held note can't advance twice.
+    for (const chord of allChords()) {
+      const run = scaleRun(chord.root, chord.quality)
+      for (let i = 1; i < run.length; i++) {
+        expect(run[i], `${chordLabel(chord)} steps ${i - 1},${i}`).not.toBe(run[i - 1])
+      }
+    }
+  })
+})
+
+describe('scaleStep', () => {
+  it('advances through the run and completes on the last step, for all 24', () => {
+    for (const chord of allChords()) {
+      const run = scaleRun(chord.root, chord.quality)
+      run.forEach((pitchClass, index) => {
+        expect(
+          scaleStep(run, index, pitchClass),
+          `${chordLabel(chord)} step ${index}`
+        ).toBe(index === run.length - 1 ? 'complete' : 'advance')
+      })
+    }
+  })
+
+  it('grades MIDI notes in any octave, mixed mid-run included', () => {
+    const run = scaleRun(0, 'major')
+    expect(scaleStep(run, 0, 60)).toBe('advance')
+    expect(scaleStep(run, 0, 48)).toBe('advance')
+    expect(scaleStep(run, 1, 74)).toBe('advance') // D an octave up from the C
+    expect(scaleStep(run, 14, 72)).toBe('complete')
+  })
+
+  it('rejects a wrong pitch class at the start, mid-run and on the last step', () => {
+    const run = scaleRun(0, 'major')
+    expect(scaleStep(run, 0, 61)).toBe('wrong') // C# for C
+    expect(scaleStep(run, 3, 64)).toBe('wrong') // E when F is due
+    expect(scaleStep(run, 14, 62)).toBe('wrong') // D for the final C
+  })
+
+  it('rejects the right note in the wrong order', () => {
+    for (const chord of allChords()) {
+      const run = scaleRun(chord.root, chord.quality)
+      for (let i = 0; i < run.length - 1; i++) {
+        expect(scaleStep(run, i, run[i + 1]!), `${chordLabel(chord)} step ${i}`).toBe('wrong')
+      }
+    }
+  })
+})
+
+describe('scaleLabel', () => {
+  it('names the scale the way the prompt reads it', () => {
+    expect(scaleLabel({ root: 0, quality: 'major' })).toBe('C major scale')
+    expect(scaleLabel({ root: 9, quality: 'minor' })).toBe('A minor scale')
+    expect(scaleLabel({ root: 8, quality: 'minor' }, 'sharps')).toBe('G# minor scale')
+    expect(scaleLabel({ root: 8, quality: 'minor' }, 'flats')).toBe('Ab minor scale')
   })
 })
 

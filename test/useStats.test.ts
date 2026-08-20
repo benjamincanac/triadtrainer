@@ -71,6 +71,25 @@ describe('aggregateByChord', () => {
     expect(stats.find(stat => stat.root === 7 && stat.q === 'major')!.count).toBe(1)
     expect(stats.filter(stat => stat.count > 0)).toHaveLength(3)
   })
+
+  it('keeps scale runs off the triad grid', () => {
+    const stats = aggregateByChord([
+      attempt({ ex: 'scale' }),
+      attempt({ ex: 'scale', root: 7, ok: false })
+    ])
+    expect(stats.every(stat => stat.count === 0)).toBe(true)
+  })
+
+  it('counts only the triad rows of a mixed log', () => {
+    const stats = aggregateByChord([
+      attempt({ ms: 1000 }),
+      attempt({ ex: 'scale', ms: 9000, ok: false })
+    ])
+    const cMajor = stats.find(stat => stat.root === 0 && stat.q === 'major')!
+    expect(cMajor.count).toBe(1)
+    expect(cMajor.accuracy).toBe(1)
+    expect(cMajor.meanMs).toBe(1000)
+  })
 })
 
 describe('localDayKey', () => {

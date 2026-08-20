@@ -367,6 +367,41 @@ export function scaleNotes(root: PitchClass, quality: Quality, baseOctaveNote = 
   return [...steps.map(step => tonic + step), tonic + 12]
 }
 
+/** Tonic, up the seven degrees to the octave tonic, back down: 8 + 7 steps. */
+export const SCALE_RUN_LENGTH = 15
+
+/**
+ * The pitch classes of an up-and-down scale run, one per expected note. A
+ * palindrome with the tonic at 0, 7 and 14. Pitch classes rather than MIDI
+ * notes so the run can be played in any octave, or even change octave halfway
+ * up — the drill grades what degree comes next, not where the hand sits.
+ */
+export function scaleRun(root: PitchClass, quality: Quality): PitchClass[] {
+  const up = [...scale(root, quality), normalize(root)]
+  return [...up, ...up.slice(0, -1).reverse()]
+}
+
+export type ScaleStepVerdict = 'advance' | 'complete' | 'wrong'
+
+/**
+ * Grade one note-on against the run. Order is the whole exercise here, so this
+ * is the one validator that cares about it: the note either is the next step or
+ * it's wrong, and 'complete' only lands on the final step.
+ *
+ * Safe to drive from note-ons alone: no two consecutive steps of any run share
+ * a pitch class (the degrees are distinct and the turnaround is tonic to
+ * seventh), so a held note can never advance twice.
+ */
+export function scaleStep(run: PitchClass[], index: number, note: number): ScaleStepVerdict {
+  if (toPitchClass(note) !== run[index]) return 'wrong'
+  return index === run.length - 1 ? 'complete' : 'advance'
+}
+
+/** `C major scale`. One table with chordLabel, so prompt and verdict agree. */
+export function scaleLabel(chord: Chord, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
+  return `${chordLabel(chord, accidentals)} scale`
+}
+
 /** Which scale degrees (1-indexed) the triad occupies. Always 1, 3, 5. */
 export const TRIAD_DEGREES = [1, 3, 5] as const
 

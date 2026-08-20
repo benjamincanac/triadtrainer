@@ -16,6 +16,9 @@ import {
   pickChord,
   pickInversion,
   sameChord,
+  scale,
+  scaleRun,
+  scaleStep,
   toPitchClass,
   type Chord,
   type InversionName,
@@ -43,6 +46,9 @@ export function useTrainer() {
   // playable. An instrument with a voice of its own would only be doubled.
   const midi = useMidi((note) => {
     if (settings.value.echoMidi) synth.play(note)
+    // Fires on fresh note-ons only (useMidi drops repeats of a held note),
+    // which is exactly the granularity the scale run is graded at.
+    onNoteInput(note)
   })
 
   const current = ref<Chord | null>(null)
@@ -93,10 +99,19 @@ export function useTrainer() {
   /**
    * Ear training ignores the setting: finding the chord by sound is the whole
    * exercise, and asking for a voicing on top of it is a different drill.
+   * A scale run has no inversions to ask for either.
    */
   const drillsInversions = computed(() =>
-    settings.value.inversions && settings.value.mode === 'drill'
+    settings.value.inversions && settings.value.mode === 'drill' && settings.value.exercise === 'triads'
   )
+
+  /** Scales exist in drill mode only; ear and explore stay triads. */
+  const drillsScales = computed(() =>
+    settings.value.mode === 'drill' && settings.value.exercise === 'scales'
+  )
+
+  /** The next step of the run being played, 0-14. */
+  const scaleIndex = ref(0)
 
   /** Everything currently down, as MIDI notes. */
   const selectedNotes = computed(() => {
@@ -114,12 +129,21 @@ export function useTrainer() {
   /** Explore mode: name whatever is being held, inversion included. */
   const identified = computed(() => identifyTriad(selectedNotes.value))
 
-  const target = computed(() =>
-    current.value ? new Set(chordPitchClasses(current.value)) : new Set<PitchClass>()
-  )
+  const target = computed(() => {
+    if (!current.value) return new Set<PitchClass>()
+    // A scale reveal lights all seven degrees; order is the prompt's job.
+    if (drillsScales.value) return new Set(scale(current.value.root, current.value.quality))
+    return new Set(chordPitchClasses(current.value))
+  })
 
   const verdict = computed(() => {
     if (phase.value === 'correct') return 'Correct'
+
+    // The lamps light the scale as a set; where the run broke is on the dots.
+    if (drillsScales.value) {
+      if (phase.value === 'revealed') return 'The scale is lit on the keys'
+      return phase.value === 'wrong' ? 'Wrong — the scale is lit on the keys' : ''
+    }
 
     const chord = current.value
     const inversion = currentInversion.value
@@ -159,6 +183,7 @@ export function useTrainer() {
     answered.value = new Set()
     phase.value = 'awaiting'
     wrongBass.value = false
+    scaleIndex.value = 0
     startedAt = performance.now()
     armed.value = selected.value.size < 3
   }
@@ -224,7 +249,8 @@ export function useTrainer() {
     phase.value = 'revealed'
     stats.record(chord, ms, false, {
       inversion: currentInversion.value,
-      ear: settings.value.mode === 'ear'
+      ear: settings.value.mode === 'ear',
+      scale: drillsScales.value
     })
 
     clearTimer()
@@ -264,9 +290,39 @@ export function useTrainer() {
     timer = setTimeout(ok ? next : retry, ok ? advance : REVEAL_DELAY)
   }
 
+  /**
+   * The scale drill's validator. Where the triad drill grades a set held at
+   * once, this grades one note-on at a time against the run, so it hangs off
+   * the note events themselves rather than the held-set watcher.
+   */
+  function onNoteInput(midiNote: number) {
+    const chord = current.value
+    if (!chord || !drillsScales.value || phase.value !== 'awaiting') return
+
+    const graded = scaleStep(scaleRun(chord.root, chord.quality), scaleIndex.value, midiNote)
+
+    if (graded === 'advance') {
+      scaleIndex.value++
+      return
+    }
+
+    const ms = performance.now() - startedAt
+    const ok = graded === 'complete'
+    // On a miss the lamps single out the offending key against the lit scale;
+    // on completion the set and the answer are the same seven notes.
+    answered.value = ok ? new Set(scale(chord.root, chord.quality)) : new Set([toPitchClass(midiNote)])
+    phase.value = ok ? 'correct' : 'wrong'
+    stats.record(chord, ms, ok, { scale: true })
+
+    clearTimer()
+    timer = setTimeout(ok ? next : retry, ok ? ADVANCE_DELAY : REVEAL_DELAY)
+  }
+
   watch(selected, (set) => {
     // Explore is free play: no prompt, no timer, nothing to be wrong about.
     if (settings.value.mode === 'explore') return
+    // Scales grade note by note in onNoteInput; three held notes mean nothing.
+    if (drillsScales.value) return
     if (phase.value !== 'awaiting') return
 
     if (!armed.value) {
@@ -296,12 +352,23 @@ export function useTrainer() {
     if (settings.value.mode === 'drill') next()
   })
 
+  watch(() => settings.value.exercise, () => {
+    if (settings.value.mode === 'drill') next()
+  })
+
   /** A click is a note: same sound, same effect on the answer. */
   function pressKey(midiNote: number) {
     synth.unlock()
     synth.play(midiNote)
 
     if (settings.value.mode !== 'explore' && phase.value !== 'awaiting') return
+
+    // A scale click is one transient step, not part of a chord being built, so
+    // it skips the latch below — latching would toggle a re-pressed key off.
+    if (drillsScales.value) {
+      onNoteInput(midiNote)
+      return
+    }
 
     const updated = new Set(clicked.value)
     if (updated.has(midiNote)) updated.delete(midiNote)
@@ -322,6 +389,10 @@ export function useTrainer() {
 
     const wasPlayed = answered.value.has(pitchClass)
     const inTarget = target.value.has(pitchClass)
+
+    // A broken run singles out the note that broke it, even when it belongs to
+    // the scale: the miss was the order, and green would say otherwise.
+    if (drillsScales.value && phase.value === 'wrong') return wasPlayed ? 'wrong' : inTarget ? 'revealed' : 'off'
 
     if (wasPlayed) return inTarget ? 'correct' : 'wrong'
     if (inTarget && phase.value !== 'correct') return 'revealed'
@@ -349,6 +420,7 @@ export function useTrainer() {
     currentInversion,
     phase,
     verdict,
+    scaleIndex,
     selected,
     selectedNotes,
     identified,
