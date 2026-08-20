@@ -15,6 +15,9 @@ export type Mode = 'drill' | 'explore' | 'ear'
 
 const MODES: Mode[] = ['drill', 'explore', 'ear']
 
+/** What the drill asks for: a chord held at once, or a scale run note by note. */
+export type Exercise = 'triads' | 'scales'
+
 const STORAGE_KEY = 'triadtrainer.settings.v1'
 const LEGACY_STORAGE_KEY = 'subito.settings.v1'
 
@@ -44,6 +47,8 @@ export interface Settings {
   echoMidi: boolean
   /** What the home page does. */
   mode: Mode
+  /** What the drill practises. Ear and explore stay triads regardless. */
+  exercise: Exercise
 }
 
 const DEFAULTS: Settings = {
@@ -55,7 +60,8 @@ const DEFAULTS: Settings = {
   inversions: false,
   revealName: false,
   echoMidi: true,
-  mode: 'drill'
+  mode: 'drill',
+  exercise: 'triads'
 }
 
 // App-lifetime singleton so the settings panel and the drill share one object.
@@ -79,7 +85,10 @@ function sanitize(value: Partial<Settings> | null): Settings {
     inversions: typeof value.inversions === 'boolean' ? value.inversions : DEFAULTS.inversions,
     revealName: typeof value.revealName === 'boolean' ? value.revealName : DEFAULTS.revealName,
     echoMidi: typeof value.echoMidi === 'boolean' ? value.echoMidi : DEFAULTS.echoMidi,
-    mode: value.mode && MODES.includes(value.mode) ? value.mode : DEFAULTS.mode
+    mode: value.mode && MODES.includes(value.mode) ? value.mode : DEFAULTS.mode,
+    exercise: value.exercise === 'triads' || value.exercise === 'scales'
+      ? value.exercise
+      : DEFAULTS.exercise
   }
 }
 

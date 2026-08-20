@@ -2,11 +2,20 @@
 import { computed, onBeforeUnmount, onMounted } from 'vue'
 import type { Settings } from '~/composables/useSettings'
 import { DAILY_GOAL } from '~/composables/useStats'
-import { fingering } from '~/composables/useTheory'
+import { fingering, SCALE_RUN_LENGTH } from '~/composables/useTheory'
 import { useTrainer } from '~/composables/useTrainer'
 
-const MODES: { label: string, value: Settings['mode'] }[] = [
-  { label: 'Drill', value: 'drill' },
+/**
+ * One flat row: the drill split by exercise, then the two other modes. Ear and
+ * explore stay triad-only (a scale's pitch class set is ambiguous — C major and
+ * A minor are the same seven notes — so identifying or grading one from held
+ * notes has no honest answer), which is what lets two axes collapse into four tabs.
+ */
+type Tab = Settings['exercise'] | 'ear' | 'explore'
+
+const TABS: { label: string, value: Tab }[] = [
+  { label: 'Triads', value: 'triads' },
+  { label: 'Scales', value: 'scales' },
   { label: 'Ear', value: 'ear' },
   { label: 'Explore', value: 'explore' }
 ]
@@ -19,6 +28,7 @@ const {
   currentInversion,
   phase,
   verdict,
+  scaleIndex,
   selected,
   selectedNotes,
   lampFor,
@@ -33,12 +43,20 @@ const {
 
 const isExplore = computed(() => settings.value.mode === 'explore')
 const isEar = computed(() => settings.value.mode === 'ear')
+const isScales = computed(() => settings.value.mode === 'drill' && settings.value.exercise === 'scales')
 
-/** Writable, so switching also empties whatever was being held in the old mode. */
-const mode = computed({
-  get: () => settings.value.mode,
+/**
+ * Writable, so switching also empties whatever was being held in the old tab.
+ * The tab is a view over the two persisted fields: triads and scales are both
+ * the drill, so picking one sets the mode and the exercise together.
+ */
+const tab = computed({
+  get: (): Tab => settings.value.mode === 'drill' ? settings.value.exercise : settings.value.mode,
   set: (value: string | number) => {
-    settings.value = { ...settings.value, mode: value as Settings['mode'] }
+    const picked = value as Tab
+    settings.value = picked === 'triads' || picked === 'scales'
+      ? { ...settings.value, mode: 'drill', exercise: picked }
+      : { ...settings.value, mode: picked }
     clearHeld()
   }
 })
@@ -113,9 +131,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />
       </div>
 
-      <!-- Taken out of the flow so the two clusters beside it can grow without
-           dragging the mode switch off the centre of the board. -->
-      <UTabs v-model="mode" :items="MODES" :content="false" size="sm" class="-my-1" data-shortcuts />
+      <!-- Sized to its labels and allowed to spill over the track, so four tabs
+           stay readable without dragging the switch off the centre of the board.
+           `flex-initial` undoes the equal-width triggers that would otherwise
+           squeeze the longest label into an ellipsis. -->
+      <UTabs v-model="tab" :items="TABS" :content="false" size="sm" class="-my-1 w-fit justify-self-center" :ui="{ trigger: 'flex-initial' }" data-shortcuts />
 
       <div class="flex justify-end">
         <!-- The one panel that isn't a readout. The device it plays sits at the
@@ -131,6 +151,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <div class="flex min-h-0 flex-1 flex-col items-center justify-center gap-6">
       <EarPrompt v-if="isEar" :chord="current" :phase="phase" :verdict="verdict" />
       <ExploreReadout v-else-if="isExplore" :identified="identified" :held="selectedNotes" />
+      <ScalePrompt v-else-if="isScales" :chord="current" :phase="phase" :verdict="verdict" :step="scaleIndex" :total="SCALE_RUN_LENGTH" />
       <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" :inversion="currentInversion" />
 
       <div data-shortcuts class="flex justify-center gap-2">

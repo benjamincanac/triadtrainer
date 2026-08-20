@@ -26,3 +26,6 @@ logs
 
 # Claude
 .claude/worktrees
+
+# Brag
+brag-output

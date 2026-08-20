@@ -47,6 +47,8 @@ export interface Attempt {
   inv?: InversionName
   /** Set only for ear training. Absent means the chord was named on screen. */
   mode?: 'ear'
+  /** Set only for scale runs. Absent means a triad. */
+  ex?: 'scale'
 }
 
 /** One local calendar day of practice. */
@@ -102,6 +104,7 @@ function isAttempt(value: unknown): value is Attempt {
     // they existed readable, which is what keeps the key at v1.
     && (a.inv === undefined || INVERSION_NAMES.includes(a.inv))
     && (a.mode === undefined || a.mode === 'ear')
+    && (a.ex === undefined || a.ex === 'scale')
 }
 
 function isDayRecord(value: unknown): value is DayRecord {
@@ -144,6 +147,9 @@ export function aggregateByChord(list: Attempt[]): ChordStat[] {
   const totals = new Map<string, { count: number, correct: number, ms: number }>()
 
   for (const attempt of list) {
+    // This is the 24-triad grid. A scale run shares the root and quality but
+    // measures a different skill, so it stays off the board.
+    if (attempt.ex !== undefined) continue
     const key = `${attempt.root}:${attempt.q}`
     const row = totals.get(key) ?? { count: 0, correct: 0, ms: 0 }
     row.count++
@@ -214,6 +220,8 @@ export interface AttemptContext {
   /** The inversion that was named, when one was. */
   inversion?: InversionName | null
   ear?: boolean
+  /** The prompt was a scale run rather than a chord. */
+  scale?: boolean
 }
 
 /**
@@ -319,7 +327,8 @@ export function useStats() {
       // Spread in rather than set to null: absent is exactly what a row written
       // before these existed looks like, and every reader already handles that.
       ...(context.inversion ? { inv: context.inversion } : {}),
-      ...(context.ear ? { mode: 'ear' as const } : {})
+      ...(context.ear ? { mode: 'ear' as const } : {}),
+      ...(context.scale ? { ex: 'scale' as const } : {})
     }
 
     attempts.value = [...attempts.value, attempt].slice(-MAX_ATTEMPTS)
