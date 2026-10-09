@@ -23,7 +23,7 @@
   "dependencies": {
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/ui": "^4.10.0",
-    "nuxt": "^4.5.2",
+    "nuxt": "^4.6.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
