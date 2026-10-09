@@ -18,7 +18,7 @@ const voicings = computed(() =>
   inversions(props.chord, 60).map(inversion => ({
     ...inversion,
     blurb: COPY[inversion.name],
-    names: inversion.notes.map(note => noteName(toPitchClass(note), settings.value.accidentals)),
+    names: inversion.notes.map(note => noteName(toPitchClass(note), settings.value.accidentals, settings.value.naming)),
     // Keyed by MIDI note so the diagram can print them on the right keys.
     fingers: Object.fromEntries(inversion.notes.map((note, i) => [note, {
       right: inversion.fingering.right[i]!,
@@ -32,7 +32,7 @@ const voicings = computed(() =>
   <section class="flex flex-col gap-3">
     <p class="max-w-prose text-xs leading-relaxed text-muted">
       Same three notes, three stacking orders. The drill accepts all of them, because
-      {{ chordLabel(chord, settings.accidentals) }} is a set of pitch classes, not a fingering.
+      {{ chordLabel(chord, settings.accidentals, settings.naming) }} is a set of pitch classes, not a fingering.
       Numbers on the keys are fingers, <span class="text-highlighted">right hand on top</span>,
       left hand below. Thumb is 1.
     </p>
@@ -69,7 +69,7 @@ const voicings = computed(() =>
         <button
           type="button"
           class="cursor-pointer rounded"
-          :aria-label="`Play ${chordLabel(chord, settings.accidentals)} in ${voicing.name} position`"
+          :aria-label="`Play ${chordLabel(chord, settings.accidentals, settings.naming)} in ${voicing.name} position`"
           @click="emit('play', voicing.notes)"
         >
           <!-- 28 semitones from C4 reaches MIDI 87, the top note of the highest

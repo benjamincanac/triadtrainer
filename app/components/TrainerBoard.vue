@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted } from 'vue'
-import type { Settings } from '~/composables/useSettings'
+import { tabOf, withTab, type Tab } from '~/composables/useSettings'
 import { DAILY_GOAL } from '~/composables/useStats'
 import { fingering, SCALE_RUN_LENGTH } from '~/composables/useTheory'
 import { useTrainer } from '~/composables/useTrainer'
@@ -9,13 +9,12 @@ import { useTrainer } from '~/composables/useTrainer'
  * One flat row: the drill split by exercise, then the two other modes. Ear and
  * explore stay triad-only (a scale's pitch class set is ambiguous — C major and
  * A minor are the same seven notes — so identifying or grading one from held
- * notes has no honest answer), which is what lets two axes collapse into four tabs.
+ * notes has no honest answer), which is what lets two axes collapse into one row.
  */
-type Tab = Settings['exercise'] | 'ear' | 'explore'
-
 const TABS: { label: string, value: Tab }[] = [
   { label: 'Triads', value: 'triads' },
   { label: 'Scales', value: 'scales' },
+  { label: 'Notes', value: 'notes' },
   { label: 'Ear', value: 'ear' },
   { label: 'Explore', value: 'explore' }
 ]
@@ -25,6 +24,8 @@ const {
   stats,
   midi,
   current,
+  currentLine,
+  noteIndex,
   currentInversion,
   phase,
   verdict,
@@ -44,19 +45,18 @@ const {
 const isExplore = computed(() => settings.value.mode === 'explore')
 const isEar = computed(() => settings.value.mode === 'ear')
 const isScales = computed(() => settings.value.mode === 'drill' && settings.value.exercise === 'scales')
+const isNotes = computed(() => settings.value.mode === 'drill' && settings.value.exercise === 'notes')
 
 /**
  * Writable, so switching also empties whatever was being held in the old tab.
- * The tab is a view over the two persisted fields: triads and scales are both
- * the drill, so picking one sets the mode and the exercise together.
+ * The tab is a view over the two persisted fields: triads, scales and notes
+ * are all the drill, so picking one sets the mode and the exercise together.
+ * `withTab` also swaps in the settings that tab was last left with.
  */
 const tab = computed({
-  get: (): Tab => settings.value.mode === 'drill' ? settings.value.exercise : settings.value.mode,
+  get: (): Tab => tabOf(settings.value),
   set: (value: string | number) => {
-    const picked = value as Tab
-    settings.value = picked === 'triads' || picked === 'scales'
-      ? { ...settings.value, mode: 'drill', exercise: picked }
-      : { ...settings.value, mode: picked }
+    settings.value = withTab(settings.value, value as Tab)
     clearHeld()
   }
 })
@@ -131,7 +131,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         <MidiStatus :state="midi.state.value" :inputs="midi.inputs.value" :selected-id="midi.selectedId.value" @select="midi.selectInput" />
       </div>
 
-      <!-- Sized to its labels and allowed to spill over the track, so four tabs
+      <!-- Sized to its labels and allowed to spill over the track, so five tabs
            stay readable without dragging the switch off the centre of the board.
            `flex-initial` undoes the equal-width triggers that would otherwise
            squeeze the longest label into an ellipsis. -->
@@ -152,6 +152,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <EarPrompt v-if="isEar" :chord="current" :phase="phase" :verdict="verdict" />
       <ExploreReadout v-else-if="isExplore" :identified="identified" :held="selectedNotes" />
       <ScalePrompt v-else-if="isScales" :chord="current" :phase="phase" :verdict="verdict" :step="scaleIndex" :total="SCALE_RUN_LENGTH" />
+      <StaffPrompt v-else-if="isNotes" :notes="currentLine" :step="noteIndex" :fingering="settings.fingering" :phase="phase" :verdict="verdict" />
       <ChordPrompt v-else :chord="current" :phase="phase" :verdict="verdict" :inversion="currentInversion" />
 
       <div data-shortcuts class="flex justify-center gap-2">
@@ -182,7 +183,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     <div v-if="!isExplore" class="grid shrink-0 gap-3 sm:grid-cols-3">
       <StatsPanel :last-ms="stats.lastMs.value" :rolling-ms="stats.rollingMs.value" :streak="stats.streak.value" :accuracy="stats.accuracy.value" :total="stats.total.value" :day-streak="stats.dayStreak.value.length" :streak-active-today="stats.dayStreak.value.activeToday" :today-correct="stats.todayCorrect.value" :daily-goal="DAILY_GOAL" />
 
-      <MasteryGrid :stats="stats.perChord.value" :accidentals="settings.accidentals" />
+      <MasteryGrid :stats="stats.perChord.value" :accidentals="settings.accidentals" :naming="settings.naming" />
 
       <ProgressChart :sessions="stats.sessions.value" />
     </div>

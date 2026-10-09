@@ -5,12 +5,21 @@ it validates and times you. Reaction time is the metric worth watching, not the 
 not working the chord out, it is knowing it immediately.
 
 **Learn** covers the same 24 chords three ways: the four hand shapes they sort into, the three
-inversions, and the scale each one comes from.
+inversions, and the scale each one comes from. A fourth lesson lays out both staves note by note,
+for reading.
 
 ## Modes
 
 **Drill** names a chord and times how long you take to play it. Turn on *Ask for inversions* and the
 prompt names a voicing too, so `C major / 1st inversion` wants E at the bottom.
+
+**Notes** writes one note on a staff and times how long you take to find its key. Pick the treble
+clef, the bass clef or both in the settings. Each staff runs one ledger line past its outer edge
+and two on the side facing the other staff, where the hands meet, so middle C shows up on both. Any
+octave of the right key counts. *Sharps and flats* adds altered notes, off by default. Set *Notes per
+prompt* to 4 or 8 and it writes a line to play left to right instead. A line stays inside one hand
+position, five keys under five fingers, with the finger numbers printed under the notes: right hand
+on the treble staff, left hand on the bass. A wrong note ends the line and the same one comes back.
 
 **Ear** plays a chord instead of naming one. Find it on the keyboard. `R` plays it again, and
 listening twice costs you the time it costs you. A miss retries the same chord, so the name stays

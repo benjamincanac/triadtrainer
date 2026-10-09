@@ -23,7 +23,7 @@ function keyProps(note: number) {
   const pitchClass = toPitchClass(note)
   return {
     midiNote: note,
-    labels: noteNames(pitchClass, settings.value.accidentals),
+    labels: noteNames(pitchClass, settings.value.accidentals, settings.value.naming),
     showLabel: props.showLabels,
     lamp: props.lampFor(pitchClass),
     pressed: props.selected.has(pitchClass),

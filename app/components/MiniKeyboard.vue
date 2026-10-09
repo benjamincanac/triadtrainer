@@ -61,7 +61,7 @@ function key(note: number) {
     // A root only counts when it's actually in the voicing. Callers pass every
     // octave of the root, and the inversion that omits one must not light it.
     root: on && litRoots.value.has(probe),
-    name: noteName(toPitchClass(note), settings.value.accidentals),
+    name: noteName(toPitchClass(note), settings.value.accidentals, settings.value.naming),
     octave: Math.floor(note / 12) - 1,
     finger: props.fingers?.[note]
   }

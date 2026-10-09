@@ -28,7 +28,7 @@ const { settings } = useSettings()
         'text-bad': phase === 'wrong'
       }"
     >
-      {{ chord ? chordLabel(chord, settings.accidentals) : '—' }}
+      {{ chord ? chordLabel(chord, settings.accidentals, settings.naming) : '—' }}
     </p>
 
     <!-- Part of the ask, not a note about it: amber is what this app uses for

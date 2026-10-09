@@ -22,7 +22,7 @@ const { settings } = useSettings()
 const headline = computed(() => {
   if (!props.chord || props.phase === 'awaiting') return '?'
   if (props.phase === 'wrong' && !settings.value.revealName) return '?'
-  return chordLabel(props.chord, settings.value.accidentals)
+  return chordLabel(props.chord, settings.value.accidentals, settings.value.naming)
 })
 </script>
 

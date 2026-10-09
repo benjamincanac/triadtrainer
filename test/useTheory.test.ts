@@ -4,6 +4,7 @@ import {
   chordLabel,
   chordPitchClasses,
   chordPool,
+  CLEF_LINE,
   FINGERINGS,
   fingering,
   identifyTriad,
@@ -12,6 +13,17 @@ import {
   inversionLabel,
   inversions,
   isBlackKey,
+  ledgerLines,
+  matchesStaffNote,
+  pickStaffNote,
+  sameStaffNote,
+  STAFF_RANGE,
+  staffNoteName,
+  staffNoteMidi,
+  staffNotePool,
+  staffRun,
+  HAND_SPAN,
+  lineFingering,
   DEFAULT_ACCIDENTALS,
   FLAT_NAMES,
   matchesInversion,
@@ -20,6 +32,7 @@ import {
   normalize,
   pickChord,
   pickInversion,
+  pickStaffLine,
   pitchClassSet,
   noteName,
   noteNames,
@@ -39,7 +52,8 @@ import {
   triadShape,
   WHITE_ROOTS,
   type Chord,
-  type InversionName
+  type InversionName,
+  type StaffNote
 } from '../app/composables/useTheory'
 
 /**
@@ -323,6 +337,30 @@ describe('matchesTriad', () => {
       expect(matches, chordLabel(played)).toHaveLength(1)
       expect(sameChord(matches[0]!, played)).toBe(true)
     }
+  })
+})
+
+describe('solfège naming', () => {
+  it('names the seven naturals do to si', () => {
+    expect(WHITE_ROOTS.map(pc => noteName(pc, 'sharps', 'solfege'))).toEqual(['Do', 'Ré', 'Mi', 'Fa', 'Sol', 'La', 'Si'])
+  })
+
+  it('keeps the accidental of whichever spelling is chosen', () => {
+    expect(noteName(1, 'sharps', 'solfege')).toBe('Do#')
+    expect(noteName(1, 'flats', 'solfege')).toBe('Réb')
+    expect(noteName(10, 'flats', 'solfege')).toBe('Sib')
+    expect(noteNames(8, 'both', 'solfege')).toEqual(['Sol#', 'Lab'])
+  })
+
+  it('leaves letters alone by default', () => {
+    for (let pc = 0; pc < 12; pc++) {
+      expect(noteName(pc, 'sharps')).toBe(noteName(pc, 'sharps', 'letters'))
+    }
+  })
+
+  it('carries through to chord and scale labels', () => {
+    expect(chordLabel({ root: 7, quality: 'minor' }, 'sharps', 'solfege')).toBe('Sol minor')
+    expect(scaleLabel({ root: 3, quality: 'major' }, 'flats', 'solfege')).toBe('Mib major scale')
   })
 })
 
@@ -731,6 +769,300 @@ describe('scaleLabel', () => {
     expect(scaleLabel({ root: 9, quality: 'minor' })).toBe('A minor scale')
     expect(scaleLabel({ root: 8, quality: 'minor' }, 'sharps')).toBe('G# minor scale')
     expect(scaleLabel({ root: 8, quality: 'minor' }, 'flats')).toBe('Ab minor scale')
+  })
+})
+
+describe('staff notes', () => {
+  // Written out by hand, low to high, so a drift in the diatonic maths shows.
+  const TREBLE = [57, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81]
+  const BASS = [40, 41, 43, 45, 47, 48, 50, 52, 53, 55, 57, 59, 60, 62, 64]
+
+  it('maps every treble position from A3 to A5', () => {
+    expect(staffNotePool('treble').map(staffNoteMidi)).toEqual(TREBLE)
+  })
+
+  it('maps every bass position from E2 to E4', () => {
+    expect(staffNotePool('bass').map(staffNoteMidi)).toEqual(BASS)
+  })
+
+  it('puts E4 and G2 on the bottom lines', () => {
+    expect(staffNoteMidi({ clef: 'treble', position: 0 })).toBe(64)
+    expect(staffNoteMidi({ clef: 'bass', position: 0 })).toBe(43)
+  })
+
+  it('hangs each clef on the line it names', () => {
+    // G on the second line of the treble staff, F on the fourth of the bass.
+    expect(staffNoteMidi({ clef: 'treble', position: CLEF_LINE.treble })).toBe(67)
+    expect(staffNoteMidi({ clef: 'bass', position: CLEF_LINE.bass })).toBe(53)
+  })
+
+  it('only ever writes naturals', () => {
+    for (const note of staffNotePool()) {
+      expect(isBlackKey(staffNoteMidi(note))).toBe(false)
+    }
+  })
+
+  it('walks both staves low to high, bass first', () => {
+    const pool = staffNotePool('both')
+    expect(pool).toHaveLength(30)
+    expect(pool[0]).toEqual({ clef: 'bass', position: STAFF_RANGE.bass.min })
+    expect(pool.at(-1)).toEqual({ clef: 'treble', position: STAFF_RANGE.treble.max })
+    expect(pool.map(staffNoteMidi)).toEqual([...BASS, ...TREBLE])
+  })
+
+  it('defaults to both staves', () => {
+    expect(staffNotePool()).toEqual(staffNotePool('both'))
+  })
+})
+
+describe('sharps and flats on the staff', () => {
+  const bFlat: StaffNote = { clef: 'treble', position: 4, alteration: 'flat' }
+  const fSharp: StaffNote = { clef: 'treble', position: 1, alteration: 'sharp' }
+
+  it('moves the key a semitone and leaves the note where it is written', () => {
+    expect(staffNoteMidi(bFlat)).toBe(70)
+    expect(staffNoteMidi(fSharp)).toBe(66)
+    expect(matchesStaffNote(58, bFlat)).toBe(true)
+    expect(matchesStaffNote(71, bFlat)).toBe(false)
+  })
+
+  it('names a note as written, not by the key it lands on', () => {
+    expect(staffNoteName(bFlat)).toBe('Bb')
+    expect(staffNoteName(fSharp)).toBe('F#')
+    expect(staffNoteName(bFlat, 'solfege')).toBe('Sib')
+    expect(staffNoteName({ clef: 'bass', position: 6 }, 'solfege')).toBe('Fa')
+  })
+
+  it('writes none unless asked', () => {
+    expect(staffNotePool('both').some(note => note.alteration)).toBe(false)
+  })
+
+  it('adds only the signs asked for', () => {
+    expect(staffNotePool('both', 'flats').some(note => note.alteration === 'sharp')).toBe(false)
+    expect(staffNotePool('both', 'sharps').some(note => note.alteration === 'flat')).toBe(false)
+    expect(new Set(staffNotePool('both', 'both').map(note => note.alteration))).toEqual(new Set([undefined, 'flat', 'sharp']))
+  })
+
+  it('only ever lands an altered note on a black key', () => {
+    for (const note of staffNotePool('both', 'both')) {
+      expect(isBlackKey(staffNoteMidi(note)), staffNoteName(note)).toBe(note.alteration !== undefined)
+    }
+  })
+
+  it('keeps every natural when signs are on', () => {
+    const naturals = staffNotePool('treble', 'both').filter(note => !note.alteration)
+    expect(naturals).toEqual(staffNotePool('treble'))
+  })
+
+  it('stays low to high', () => {
+    const midi = staffNotePool('bass', 'flats').map(staffNoteMidi)
+    expect(midi).toEqual([...midi].sort((a, b) => a - b))
+  })
+
+  it('tells a note from its altered self', () => {
+    expect(sameStaffNote(bFlat, { clef: 'treble', position: 4 })).toBe(false)
+    expect(sameStaffNote(bFlat, { ...bFlat })).toBe(true)
+  })
+
+  it('fingers an altered note like the natural it is written on', () => {
+    expect(lineFingering([{ clef: 'treble', position: 2 }, bFlat, { clef: 'treble', position: 6 }])).toEqual([1, 3, 5])
+  })
+})
+
+describe('ledgerLines', () => {
+  it('needs none on the staff or in the spaces touching it', () => {
+    for (let position = -1; position <= 9; position++) {
+      expect(ledgerLines(position), `position ${position}`).toEqual([])
+    }
+  })
+
+  it('draws one for middle C on either staff', () => {
+    expect(ledgerLines(-2)).toEqual([-2])
+    expect(ledgerLines(10)).toEqual([10])
+  })
+
+  it('stacks them for notes further out', () => {
+    expect(ledgerLines(-5)).toEqual([-2, -4])
+    expect(ledgerLines(13)).toEqual([10, 12])
+  })
+})
+
+describe('matchesStaffNote', () => {
+  const middleC: StaffNote = { clef: 'treble', position: -2 }
+
+  it('accepts the written note in any octave', () => {
+    for (const note of [36, 48, 60, 72, 84]) {
+      expect(matchesStaffNote(note, middleC)).toBe(true)
+    }
+  })
+
+  it('rejects every other pitch class', () => {
+    for (let note = 61; note < 72; note++) {
+      expect(matchesStaffNote(note, middleC)).toBe(false)
+    }
+  })
+
+  it('reads the same key off both staves at middle C', () => {
+    expect(matchesStaffNote(60, { clef: 'bass', position: 10 })).toBe(true)
+  })
+})
+
+describe('pickStaffNote', () => {
+  it('returns null on an empty pool', () => {
+    expect(pickStaffNote([])).toBeNull()
+  })
+
+  it('never repeats the previous note', () => {
+    const pool = staffNotePool()
+    for (const previous of pool) {
+      for (let i = 0; i < 29; i++) {
+        expect(sameStaffNote(pickStaffNote(pool, previous, () => i / 29), previous)).toBe(false)
+      }
+    }
+  })
+
+  it('tells the two middle Cs apart', () => {
+    expect(sameStaffNote({ clef: 'treble', position: -2 }, { clef: 'bass', position: 10 })).toBe(false)
+    expect(sameStaffNote(null, { clef: 'bass', position: 0 })).toBe(false)
+  })
+
+  it('is deterministic for a given random value', () => {
+    const pool = staffNotePool('treble')
+    expect(pickStaffNote(pool, null, () => 0)).toEqual({ clef: 'treble', position: -4 })
+    expect(pickStaffNote(pool, null, () => 0.999)).toEqual({ clef: 'treble', position: 10 })
+  })
+})
+
+describe('pickStaffLine', () => {
+  it('returns an empty line on an empty pool', () => {
+    expect(pickStaffLine([], 4)).toEqual([])
+  })
+
+  it('writes the length asked for, on one staff', () => {
+    for (const length of [1, 4, 8]) {
+      for (let i = 0; i < 20; i++) {
+        const line = pickStaffLine(staffNotePool(), length, [], () => i / 20)
+        expect(line).toHaveLength(length)
+        expect(new Set(line.map(note => note.clef)).size).toBe(1)
+      }
+    }
+  })
+
+  it('stays inside one hand position', () => {
+    let seed = 7
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+    for (let i = 0; i < 200; i++) {
+      const line = pickStaffLine(staffNotePool('both', 'both'), 8, [], random)
+      const positions = line.map(note => note.position)
+      const range = STAFF_RANGE[line[0]!.clef]
+      expect(Math.max(...positions) - Math.min(...positions)).toBeLessThanOrEqual(HAND_SPAN)
+      expect(Math.min(...positions)).toBeGreaterThanOrEqual(range.min)
+      expect(Math.max(...positions)).toBeLessThanOrEqual(range.max)
+    }
+  })
+
+  it('moves by a fifth at most and never repeats a note in place', () => {
+    // A cheap deterministic generator, so the sweep covers many shapes.
+    let seed = 1
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+    for (let i = 0; i < 200; i++) {
+      const line = pickStaffLine(staffNotePool(), 8, [], random)
+      for (let at = 1; at < line.length; at++) {
+        const leap = Math.abs(line[at]!.position - line[at - 1]!.position)
+        expect(leap).toBeGreaterThan(0)
+        expect(leap).toBeLessThanOrEqual(HAND_SPAN)
+      }
+    }
+  })
+
+  it('starts away from where the previous line started', () => {
+    const pool = staffNotePool('treble')
+    for (const previous of pool) {
+      for (let i = 0; i < 12; i++) {
+        const line = pickStaffLine(pool, 4, [previous], () => i / 12)
+        expect(sameStaffNote(line[0]!, previous)).toBe(false)
+      }
+    }
+  })
+
+  it('writes each height one way, so no sign needs cancelling', () => {
+    let seed = 11
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+    for (let i = 0; i < 200; i++) {
+      const spelt = new Map<number, string | undefined>()
+      for (const note of pickStaffLine(staffNotePool('both', 'both'), 8, [], random)) {
+        if (spelt.has(note.position)) expect(note.alteration).toBe(spelt.get(note.position))
+        spelt.set(note.position, note.alteration)
+      }
+    }
+  })
+
+  it('holds the note when the pool has nowhere else to go', () => {
+    const only: StaffNote = { clef: 'bass', position: 3 }
+    expect(pickStaffLine([only], 4)).toEqual([only, only, only, only])
+  })
+})
+
+describe('lineFingering', () => {
+  const treble = (...positions: number[]): StaffNote[] => positions.map(position => ({ clef: 'treble', position }))
+  const bass = (...positions: number[]): StaffNote[] => positions.map(position => ({ clef: 'bass', position }))
+
+  it('puts the right thumb on the lowest note', () => {
+    // C D E F G from middle C: the first position anyone learns.
+    expect(lineFingering(treble(-2, -1, 0, 1, 2))).toEqual([1, 2, 3, 4, 5])
+    expect(lineFingering(treble(2, -2, 0, 1))).toEqual([5, 1, 3, 4])
+  })
+
+  it('mirrors it for the left hand, little finger at the bottom', () => {
+    expect(lineFingering(bass(3, 4, 5, 6, 7))).toEqual([5, 4, 3, 2, 1])
+    expect(lineFingering(bass(7, 3, 5))).toEqual([1, 5, 3])
+  })
+
+  it('gives the same note the same finger every time it comes back', () => {
+    expect(lineFingering(treble(4, 6, 4, 8, 6))).toEqual([1, 3, 1, 5, 3])
+  })
+
+  it('refuses a line wider than a hand', () => {
+    expect(lineFingering(treble(0, 5))).toBeNull()
+    expect(lineFingering([])).toBeNull()
+  })
+
+  it('fingers every line the drill writes', () => {
+    let seed = 3
+    const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+    for (let i = 0; i < 200; i++) {
+      const fingers = lineFingering(pickStaffLine(staffNotePool(), 8, [], random))!
+      expect(fingers.every(finger => finger >= 1 && finger <= 5)).toBe(true)
+    }
+  })
+})
+
+describe('staffRun', () => {
+  const pool = staffNotePool('both')
+
+  it('takes the next stretch of the pool in order', () => {
+    expect(staffRun(pool, 0, 4).map(staffNoteMidi)).toEqual([40, 41, 43, 45])
+    expect(staffRun(pool, 4, 4).map(staffNoteMidi)).toEqual([47, 48, 50, 52])
+  })
+
+  it('stops at the top of a staff rather than changing clef mid line', () => {
+    const line = staffRun(pool, 13, 4)
+    expect(line).toEqual([{ clef: 'bass', position: 11 }, { clef: 'bass', position: 12 }])
+  })
+
+  it('takes one spelling per height when signs are on', () => {
+    const line = staffRun(staffNotePool('treble', 'both'), 0, 4)
+    expect(new Set(line.map(note => note.position)).size).toBe(4)
+    expect(line.map(note => staffNoteName(note))).toEqual(['Ab', 'Bb', 'C', 'Db'])
+  })
+
+  it('wraps the starting point round to the bottom', () => {
+    expect(staffRun(pool, pool.length, 1)).toEqual([pool[0]])
+    expect(staffRun(pool, -1, 1)).toEqual([pool.at(-1)])
+  })
+
+  it('returns an empty line on an empty pool', () => {
+    expect(staffRun([], 0, 4)).toEqual([])
   })
 })
 

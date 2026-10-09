@@ -6,19 +6,21 @@ import {
   noteNames,
   PITCH_CLASS_COUNT,
   type Accidentals,
+  type Naming,
   type Quality
 } from '~/composables/useTheory'
 
 const props = defineProps<{
   stats: ChordStat[]
   accidentals: Accidentals
+  naming: Naming
 }>()
 
 const roots = computed(() =>
   Array.from({ length: PITCH_CLASS_COUNT }, (_, pitchClass) => ({
     pitchClass,
     // Stacked, not joined: a twelfth of the card is too narrow for `C#/Db`.
-    names: noteNames(pitchClass, props.accidentals)
+    names: noteNames(pitchClass, props.accidentals, props.naming)
   }))
 )
 
@@ -48,7 +50,7 @@ function fill(stat: ChordStat) {
 }
 
 function describe(stat: ChordStat): string {
-  const name = chordLabel({ root: stat.root, quality: stat.q }, props.accidentals)
+  const name = chordLabel({ root: stat.root, quality: stat.q }, props.accidentals, props.naming)
   if (stat.count === 0) return `${name} — not played yet`
   const attempts = `${stat.count} ${stat.count === 1 ? 'attempt' : 'attempts'}`
   return `${name} — ${attempts} · ${formatPercent(stat.accuracy)} · ${formatSeconds(stat.meanMs)}`

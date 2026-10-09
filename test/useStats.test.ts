@@ -80,6 +80,11 @@ describe('aggregateByChord', () => {
     expect(stats.every(stat => stat.count === 0)).toBe(true)
   })
 
+  it('keeps read notes off the triad grid', () => {
+    const stats = aggregateByChord([attempt({ ex: 'note' }), attempt({ ex: 'note', root: 7, ok: false })])
+    expect(stats.every(stat => stat.count === 0)).toBe(true)
+  })
+
   it('counts only the triad rows of a mixed log', () => {
     const stats = aggregateByChord([
       attempt({ ms: 1000 }),

@@ -19,11 +19,11 @@ const { settings } = useSettings()
 const heldNames = computed(() =>
   [...props.held]
     .sort((a, b) => a - b)
-    .map(note => noteName(toPitchClass(note), settings.value.accidentals))
+    .map(note => noteName(toPitchClass(note), settings.value.accidentals, settings.value.naming))
 )
 
 const headline = computed(() => {
-  if (props.identified) return chordLabel(props.identified.chord, settings.value.accidentals)
+  if (props.identified) return chordLabel(props.identified.chord, settings.value.accidentals, settings.value.naming)
   return props.held.size ? 'Not a triad' : 'Play something'
 })
 </script>

@@ -10,19 +10,27 @@ import {
   inversionBass,
   inversions,
   matchesInversion,
+  matchesStaffNote,
   matchesTriad,
   nextInversion,
   noteName,
   pickChord,
   pickInversion,
+  pickStaffLine,
   sameChord,
+  sameStaffNote,
   scale,
   scaleRun,
   scaleStep,
+  staffNoteMidi,
+  staffNoteName,
+  staffNotePool,
+  staffRun,
   toPitchClass,
   type Chord,
   type InversionName,
-  type PitchClass
+  type PitchClass,
+  type StaffNote
 } from './useTheory'
 
 /** Right answers roll straight on; wrong ones hold long enough to read. */
@@ -113,6 +121,33 @@ export function useTrainer() {
   /** The next step of the run being played, 0-14. */
   const scaleIndex = ref(0)
 
+  /** Reading is a drill exercise too; ear and explore have no staff. */
+  const drillsNotes = computed(() =>
+    settings.value.mode === 'drill' && settings.value.exercise === 'notes'
+  )
+
+  /**
+   * The written notes being asked for, read left to right. One of them is a
+   * flashcard, several are a line. Kept apart from `current`, it isn't a chord.
+   */
+  const currentLine = ref<StaffNote[]>([])
+
+  /** The note of the line that is due next. Stays on the last one once it's played. */
+  const noteIndex = ref(0)
+
+  const notePool = computed(() => staffNotePool(settings.value.clef, settings.value.alterations))
+
+  /**
+   * What an attempt is filed under, and for a line the note that is due: the
+   * one a miss or a reveal has to light. A note has no quality, but the row
+   * needs one to stay readable, and `ex` keeps it off the triad grid either way.
+   */
+  const subject = computed<Chord | null>(() => {
+    if (!drillsNotes.value) return current.value
+    const note = currentLine.value[noteIndex.value]
+    return note ? { root: toPitchClass(staffNoteMidi(note)), quality: 'major' } : null
+  })
+
   /** Everything currently down, as MIDI notes. */
   const selectedNotes = computed(() => {
     const set = new Set(clicked.value)
@@ -130,6 +165,7 @@ export function useTrainer() {
   const identified = computed(() => identifyTriad(selectedNotes.value))
 
   const target = computed(() => {
+    if (drillsNotes.value) return new Set<PitchClass>(subject.value ? [subject.value.root] : [])
     if (!current.value) return new Set<PitchClass>()
     // A scale reveal lights all seven degrees; order is the prompt's job.
     if (drillsScales.value) return new Set(scale(current.value.root, current.value.quality))
@@ -145,6 +181,16 @@ export function useTrainer() {
       return phase.value === 'wrong' ? 'Wrong — the scale is lit on the keys' : ''
     }
 
+    // A miss retries the same note with its key already lit, so naming it too
+    // gives nothing away that the lamp hasn't.
+    if (drillsNotes.value) {
+      const due = currentLine.value[noteIndex.value]
+      if (!due || phase.value === 'awaiting') return ''
+      // Named as written: a Bb on the staff isn't an A#, whatever the key caps say.
+      const name = staffNoteName(due, settings.value.naming)
+      return phase.value === 'wrong' ? `Wrong — ${name} is lit on the keys` : `${name} is lit on the keys`
+    }
+
     const chord = current.value
     const inversion = currentInversion.value
 
@@ -152,7 +198,7 @@ export function useTrainer() {
       // Same blind spot as a wrong bass: the lamps light per pitch class, so the
       // voicing the prompt asked for has to be said rather than shown.
       if (chord && inversion) {
-        const bass = noteName(inversionBass(chord, inversion), settings.value.accidentals)
+        const bass = noteName(inversionBass(chord, inversion), settings.value.accidentals, settings.value.naming)
         return `Lit on the keys, ${bass} at the bottom`
       }
       return 'The answer is lit on the keys'
@@ -163,7 +209,7 @@ export function useTrainer() {
     if (wrongBass.value && chord && inversion) {
       // The lamps can't show this one: they light per pitch class, so all three
       // of them are already green. Which note goes at the bottom has to be said.
-      const bass = noteName(inversionBass(chord, inversion), settings.value.accidentals)
+      const bass = noteName(inversionBass(chord, inversion), settings.value.accidentals, settings.value.naming)
       return `Right notes — put ${bass} at the bottom`
     }
 
@@ -184,6 +230,7 @@ export function useTrainer() {
     phase.value = 'awaiting'
     wrongBass.value = false
     scaleIndex.value = 0
+    noteIndex.value = 0
     startedAt = performance.now()
     armed.value = selected.value.size < 3
   }
@@ -204,6 +251,24 @@ export function useTrainer() {
 
   function next() {
     clearTimer()
+
+    // The chord prompt is left where it was, so coming back to it resumes.
+    if (drillsNotes.value) {
+      const list = notePool.value
+      const length = settings.value.lineLength
+      if (settings.value.order === 'sequential') {
+        // Carry on from the last note written, so the walk covers the staff.
+        const last = currentLine.value.at(-1) ?? null
+        const at = list.findIndex(note => sameStaffNote(note, last))
+        currentLine.value = staffRun(list, at + 1, length)
+      } else {
+        currentLine.value = pickStaffLine(list, length, currentLine.value)
+      }
+      // Left over from the triads otherwise, and a reveal would file it on a note.
+      currentInversion.value = null
+      rearm()
+      return
+    }
 
     if (settings.value.order === 'sequential') {
       const inversion = currentInversion.value
@@ -238,7 +303,7 @@ export function useTrainer() {
    * still has to be played.
    */
   function reveal() {
-    const chord = current.value
+    const chord = subject.value
     if (!chord || settings.value.mode === 'explore' || phase.value !== 'awaiting') return
 
     const ms = performance.now() - startedAt
@@ -250,7 +315,8 @@ export function useTrainer() {
     stats.record(chord, ms, false, {
       inversion: currentInversion.value,
       ear: settings.value.mode === 'ear',
-      scale: drillsScales.value
+      scale: drillsScales.value,
+      note: drillsNotes.value
     })
 
     clearTimer()
@@ -291,11 +357,42 @@ export function useTrainer() {
   }
 
   /**
+   * The reading drill's validator. Like the scale run it grades one note-on at
+   * a time: the right one moves along the line, and only the last one or a
+   * wrong one ends the attempt.
+   */
+  function gradeNote(midiNote: number) {
+    const line = currentLine.value
+    const note = line[noteIndex.value]
+    const filed = subject.value
+    if (!note || !filed || phase.value !== 'awaiting') return
+
+    const ok = matchesStaffNote(midiNote, note)
+    if (ok && noteIndex.value < line.length - 1) {
+      noteIndex.value++
+      return
+    }
+
+    const ms = performance.now() - startedAt
+    answered.value = new Set([toPitchClass(midiNote)])
+    phase.value = ok ? 'correct' : 'wrong'
+    stats.record(filed, ms, ok, { note: true })
+
+    clearTimer()
+    timer = setTimeout(ok ? next : retry, ok ? ADVANCE_DELAY : REVEAL_DELAY)
+  }
+
+  /**
    * The scale drill's validator. Where the triad drill grades a set held at
    * once, this grades one note-on at a time against the run, so it hangs off
    * the note events themselves rather than the held-set watcher.
    */
   function onNoteInput(midiNote: number) {
+    if (drillsNotes.value) {
+      gradeNote(midiNote)
+      return
+    }
+
     const chord = current.value
     if (!chord || !drillsScales.value || phase.value !== 'awaiting') return
 
@@ -322,7 +419,7 @@ export function useTrainer() {
     // Explore is free play: no prompt, no timer, nothing to be wrong about.
     if (settings.value.mode === 'explore') return
     // Scales grade note by note in onNoteInput; three held notes mean nothing.
-    if (drillsScales.value) return
+    if (drillsScales.value || drillsNotes.value) return
     if (phase.value !== 'awaiting') return
 
     if (!armed.value) {
@@ -336,7 +433,20 @@ export function useTrainer() {
 
   // Narrowing the pool can strand the current prompt outside it.
   watch(pool, (list) => {
+    // Not while reading: `next` would redraw the note, and the chord gets
+    // redrawn on the way back to it anyway.
+    if (drillsNotes.value) return
     if (current.value && !list.some(chord => sameChord(chord, current.value))) next()
+  })
+
+  // Same for the staves: dropping a clef can strand the note written on it.
+  watch(notePool, (list) => {
+    if (!drillsNotes.value) return
+    if (!currentLine.value.every(written => list.some(note => sameStaffNote(note, written)))) next()
+  })
+
+  watch(() => settings.value.lineLength, () => {
+    if (drillsNotes.value) next()
   })
 
   /**
@@ -365,7 +475,8 @@ export function useTrainer() {
 
     // A scale click is one transient step, not part of a chord being built, so
     // it skips the latch below — latching would toggle a re-pressed key off.
-    if (drillsScales.value) {
+    // A read note is a single click for the same reason.
+    if (drillsScales.value || drillsNotes.value) {
       onNoteInput(midiNote)
       return
     }
@@ -417,6 +528,8 @@ export function useTrainer() {
     stats,
     midi,
     current,
+    currentLine,
+    noteIndex,
     currentInversion,
     phase,
     verdict,

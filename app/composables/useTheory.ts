@@ -68,6 +68,30 @@ export const SHARP_NAMES = [
 export const DEFAULT_ACCIDENTALS: Accidentals = 'sharps'
 
 /**
+ * What the seven naturals are called. Letters are the English names, solfège
+ * the fixed-do syllables a French or Italian teacher says: do is always C,
+ * whatever the key. The same key either way, so this is a preference too.
+ */
+export type Naming = 'letters' | 'solfege'
+
+export const DEFAULT_NAMING: Naming = 'letters'
+
+const SOLFEGE: Record<string, string> = {
+  C: 'Do',
+  D: 'Ré',
+  E: 'Mi',
+  F: 'Fa',
+  G: 'Sol',
+  A: 'La',
+  B: 'Si'
+}
+
+/** `C#` to `Do#`, `Bb` to `Sib`. The accidental rides along untouched. */
+function inNaming(name: string, naming: Naming): string {
+  return naming === 'solfege' ? SOLFEGE[name[0]!]! + name.slice(1) : name
+}
+
+/**
  * Every name a pitch class goes by under the chosen spelling: one of them, or
  * both for a black key under `both`. White keys are spelled identically either
  * way, so they always come back as a single name.
@@ -75,10 +99,16 @@ export const DEFAULT_ACCIDENTALS: Accidentals = 'sharps'
  * Separate from `noteName` because a name pair has to stack on a black key cap
  * and in a grid column, where `C#/Db` on one line doesn't fit.
  */
-export function noteNames(pitchClass: PitchClass, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string[] {
+export function noteNames(
+  pitchClass: PitchClass,
+  accidentals: Accidentals = DEFAULT_ACCIDENTALS,
+  naming: Naming = DEFAULT_NAMING
+): string[] {
   const pc = normalize(pitchClass)
-  if (accidentals === 'both' && isBlackKey(pc)) return [SHARP_NAMES[pc]!, FLAT_NAMES[pc]!]
-  return [(accidentals === 'flats' ? FLAT_NAMES : SHARP_NAMES)[pc]!]
+  const names = accidentals === 'both' && isBlackKey(pc)
+    ? [SHARP_NAMES[pc]!, FLAT_NAMES[pc]!]
+    : [(accidentals === 'flats' ? FLAT_NAMES : SHARP_NAMES)[pc]!]
+  return names.map(name => inNaming(name, naming))
 }
 
 /**
@@ -86,8 +116,12 @@ export function noteNames(pitchClass: PitchClass, accidentals: Accidentals = DEF
  * chord prompt and the key caps, so a key never reads C# while its chord reads
  * Db.
  */
-export function noteName(pitchClass: PitchClass, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
-  return noteNames(pitchClass, accidentals).join('/')
+export function noteName(
+  pitchClass: PitchClass,
+  accidentals: Accidentals = DEFAULT_ACCIDENTALS,
+  naming: Naming = DEFAULT_NAMING
+): string {
+  return noteNames(pitchClass, accidentals, naming).join('/')
 }
 
 /** Pitch classes that fall on a white key. Beginner mode draws roots from here. */
@@ -125,8 +159,12 @@ export function chordPitchClasses(chord: Chord): PitchClass[] {
 }
 
 /** `C major`, `G# minor`. */
-export function chordLabel(chord: Chord, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
-  return `${noteName(chord.root, accidentals)} ${chord.quality}`
+export function chordLabel(
+  chord: Chord,
+  accidentals: Accidentals = DEFAULT_ACCIDENTALS,
+  naming: Naming = DEFAULT_NAMING
+): string {
+  return `${noteName(chord.root, accidentals, naming)} ${chord.quality}`
 }
 
 /**
@@ -398,8 +436,245 @@ export function scaleStep(run: PitchClass[], index: number, note: number): Scale
 }
 
 /** `C major scale`. One table with chordLabel, so prompt and verdict agree. */
-export function scaleLabel(chord: Chord, accidentals: Accidentals = DEFAULT_ACCIDENTALS): string {
-  return `${chordLabel(chord, accidentals)} scale`
+export function scaleLabel(
+  chord: Chord,
+  accidentals: Accidentals = DEFAULT_ACCIDENTALS,
+  naming: Naming = DEFAULT_NAMING
+): string {
+  return `${chordLabel(chord, accidentals, naming)} scale`
+}
+
+/* -------------------------------------------------------------------------- */
+/* Staff reading                                                              */
+/* -------------------------------------------------------------------------- */
+
+export type Clef = 'treble' | 'bass'
+
+/** Which staves the reading drill draws from. */
+export type ClefFilter = Clef | 'both'
+
+/** Low staff first, so an ordered walk over both climbs the whole range. */
+export const CLEFS: Clef[] = ['bass', 'treble']
+
+/** A sign written in front of a note, raising or lowering it a semitone. */
+export type Alteration = 'sharp' | 'flat'
+
+/** Which altered notes the reading drill adds to the naturals. */
+export type Alterations = 'none' | 'flats' | 'sharps' | 'both'
+
+/**
+ * A note as it is written: a clef, a height on its staff, and a sharp or flat
+ * when it has one. The position counts diatonic steps up from the bottom line,
+ * so lines are even and spaces are odd, and it is the natural that sits there:
+ * the sign moves the key, never the note head.
+ */
+export interface StaffNote {
+  clef: Clef
+  position: number
+  alteration?: Alteration
+}
+
+/** The MIDI note sitting on the bottom line of each staff: G2 and E4. */
+const BOTTOM_LINE: Record<Clef, number> = { bass: 43, treble: 64 }
+
+/**
+ * The line each clef names, as a staff position: G4 on the second line of the
+ * treble staff, F3 on the fourth of the bass. Every other note is read by
+ * counting from here, which is why the lesson and the glyphs both hang on it.
+ */
+export const CLEF_LINE: Record<Clef, number> = { bass: 6, treble: 2 }
+
+/**
+ * How far past its five lines each staff is written. One ledger line on the
+ * outside, two on the side facing the other staff: that middle stretch, A3 to
+ * E4, is where the two hands meet and where early pieces put either of them.
+ * Middle C sits in both, under the treble and over the bass.
+ */
+export const STAFF_RANGE: Record<Clef, { min: number, max: number }> = {
+  bass: { min: -2, max: 12 },
+  treble: { min: -4, max: 10 }
+}
+
+/**
+ * The naturals that take each sign. Not all seven: E#, B#, Cb and Fb are white
+ * keys under another name, which is a lesson for later than this one.
+ */
+const SHARPENED: readonly PitchClass[] = [5, 0, 7, 2, 9]
+const FLATTENED: readonly PitchClass[] = [11, 4, 9, 2, 7]
+
+/** Count white keys instead of semitones, so one step is one staff position. */
+function toDiatonic(midiNote: number): number {
+  return Math.floor(midiNote / PITCH_CLASS_COUNT) * WHITE_ROOTS.length + WHITE_ROOTS.indexOf(toPitchClass(midiNote))
+}
+
+function fromDiatonic(index: number): number {
+  const degree = ((index % WHITE_ROOTS.length) + WHITE_ROOTS.length) % WHITE_ROOTS.length
+  return Math.floor(index / WHITE_ROOTS.length) * PITCH_CLASS_COUNT + WHITE_ROOTS[degree]!
+}
+
+/** The natural at a staff position, whatever sign is written in front of it. */
+function staffNatural(note: StaffNote): number {
+  return fromDiatonic(toDiatonic(BOTTOM_LINE[note.clef]) + note.position)
+}
+
+/** The MIDI note a written note stands for. Treble position 0 is E4. */
+export function staffNoteMidi(note: StaffNote): number {
+  const shift = note.alteration === 'sharp' ? 1 : note.alteration === 'flat' ? -1 : 0
+  return staffNatural(note) + shift
+}
+
+/**
+ * A written note by name. Spelled from what is on the staff rather than from
+ * the key it lands on, so a written Bb never comes back as A#, whichever way
+ * the key caps are set to spell their black keys.
+ */
+export function staffNoteName(note: StaffNote, naming: Naming = DEFAULT_NAMING): string {
+  const sign = note.alteration === 'sharp' ? '#' : note.alteration === 'flat' ? 'b' : ''
+  return inNaming(SHARP_NAMES[toPitchClass(staffNatural(note))]! + sign, naming)
+}
+
+/**
+ * Every note the reading drill can show, low to high within each staff. With
+ * alterations on, a position that takes one gives its flat, its natural and
+ * its sharp in that order, which is also low to high.
+ */
+export function staffNotePool(clef: ClefFilter = 'both', alterations: Alterations = 'none'): StaffNote[] {
+  const flats = alterations === 'flats' || alterations === 'both'
+  const sharps = alterations === 'sharps' || alterations === 'both'
+  const notes: StaffNote[] = []
+  for (const each of CLEFS) {
+    if (clef !== 'both' && clef !== each) continue
+    for (let position = STAFF_RANGE[each].min; position <= STAFF_RANGE[each].max; position++) {
+      const natural = toPitchClass(staffNatural({ clef: each, position }))
+      if (flats && FLATTENED.includes(natural)) notes.push({ clef: each, position, alteration: 'flat' })
+      notes.push({ clef: each, position })
+      if (sharps && SHARPENED.includes(natural)) notes.push({ clef: each, position, alteration: 'sharp' })
+    }
+  }
+  return notes
+}
+
+/**
+ * The ledger lines a position needs, as staff positions. The staff itself is
+ * 0 to 8, so the first one below sits at -2 and the first one above at 10.
+ */
+export function ledgerLines(position: number): number[] {
+  const lines: number[] = []
+  for (let line = -2; line >= position; line -= 2) lines.push(line)
+  for (let line = 10; line <= position; line += 2) lines.push(line)
+  return lines
+}
+
+export function sameStaffNote(a: StaffNote | null, b: StaffNote | null): boolean {
+  if (!a || !b) return false
+  return a.clef === b.clef && a.position === b.position && a.alteration === b.alteration
+}
+
+/**
+ * Does this key play the written note? Graded by pitch class like everything
+ * else: the on-screen keyboard starts at C4, so a strict octave would put the
+ * whole bass staff out of reach of a click.
+ */
+export function matchesStaffNote(midiNote: number, note: StaffNote): boolean {
+  return toPitchClass(midiNote) === toPitchClass(staffNoteMidi(note))
+}
+
+/** `pickChord` for written notes: no immediate repeat, injectable random. */
+export function pickStaffNote(
+  pool: StaffNote[],
+  previous: StaffNote | null = null,
+  random: () => number = Math.random
+): StaffNote | null {
+  if (pool.length === 0) return null
+  const candidates = pool.length > 1 ? pool.filter(note => !sameStaffNote(note, previous)) : pool
+  const list = candidates.length > 0 ? candidates : pool
+  return list[Math.floor(random() * list.length) % list.length]!
+}
+
+/**
+ * How far a hand reaches without moving, in staff positions: five white keys
+ * under five fingers, so a fifth from thumb to little finger.
+ */
+export const HAND_SPAN = 4
+
+/**
+ * A line of notes to read in order, all on one staff and all inside one hand
+ * position. The first is drawn like a single note, away from where the
+ * previous line started. The hand is then set down somewhere around it, and
+ * the rest come from the five keys under it without repeating in place.
+ *
+ * One position per line is how beginner pieces are written, and it is what
+ * gives the line a fingering: see `lineFingering`.
+ */
+export function pickStaffLine(
+  pool: StaffNote[],
+  length: number,
+  previous: StaffNote[] = [],
+  random: () => number = Math.random
+): StaffNote[] {
+  const first = pickStaffNote(pool, previous[0] ?? null, random)
+  if (!first) return []
+
+  const staff = pool.filter(note => note.clef === first.clef)
+  const positions = staff.map(note => note.position)
+  // Every place the hand can sit and still cover the first note, kept on the staff.
+  const lowest = Math.max(Math.min(...positions), first.position - HAND_SPAN)
+  const highest = Math.max(lowest, Math.min(first.position, Math.max(...positions) - HAND_SPAN))
+  const low = lowest + Math.floor(random() * (highest - lowest + 1)) % (highest - lowest + 1)
+  // One spelling per height. A sign holds until the bar ends, so a B written
+  // after a Bb would be read as flat too without a natural sign to cancel it,
+  // and this draws none.
+  const hand: StaffNote[] = []
+  for (let position = low; position <= low + HAND_SPAN; position++) {
+    const spellings = position === first.position ? [first] : staff.filter(note => note.position === position)
+    if (spellings.length > 0) hand.push(spellings[Math.floor(random() * spellings.length) % spellings.length]!)
+  }
+
+  const line = [first]
+  while (line.length < length) {
+    const last = line.at(-1)!
+    const others = hand.filter(note => note.position !== last.position)
+    // A pool of one has nowhere to go, so the line holds the note instead.
+    line.push(others.length > 0 ? others[Math.floor(random() * others.length) % others.length]! : last)
+  }
+  return line
+}
+
+/**
+ * Finger numbers for a line, thumb = 1, aligned with its notes. The treble
+ * staff is the right hand and the bass the left, as a first book has it. The
+ * lowest note takes the right thumb or the left little finger, and every
+ * other note the finger that many keys along.
+ *
+ * Null when the line is wider than a hand: that needs a thumb crossing or a
+ * shift, and which one is a choice, not a fact this can print.
+ */
+export function lineFingering(line: StaffNote[]): number[] | null {
+  if (line.length === 0) return null
+  const positions = line.map(note => note.position)
+  const low = Math.min(...positions)
+  if (Math.max(...positions) - low > HAND_SPAN) return null
+  return line.map(note => note.clef === 'treble' ? note.position - low + 1 : 5 - (note.position - low))
+}
+
+/**
+ * Ordered practice: the next stretch of the pool from `start`, wrapping the
+ * starting point. It stops short at the top of a staff rather than running on
+ * into the other clef, since one line is drawn under one clef. A height is
+ * written once per line, for the reason `pickStaffLine` gives, so with signs
+ * on a line takes the first spelling it meets and passes over the others.
+ */
+export function staffRun(pool: StaffNote[], start: number, length: number): StaffNote[] {
+  if (pool.length === 0) return []
+  const from = ((start % pool.length) + pool.length) % pool.length
+  const line: StaffNote[] = []
+  for (let i = from; i < pool.length && line.length < length; i++) {
+    const note = pool[i]!
+    if (line.length > 0 && note.clef !== line[0]!.clef) break
+    if (line.some(written => written.position === note.position)) continue
+    line.push(note)
+  }
+  return line
 }
 
 /** Which scale degrees (1-indexed) the triad occupies. Always 1, 3, 5. */

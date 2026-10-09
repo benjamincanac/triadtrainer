@@ -24,7 +24,7 @@ const degrees = computed(() => {
   return pitchClasses.map((pitchClass, index) => ({
     degree: index + 1,
     pitchClass,
-    name: noteName(pitchClass, settings.value.accidentals),
+    name: noteName(pitchClass, settings.value.accidentals, settings.value.naming),
     inChord: chordTones.has(pitchClass)
   }))
 })
@@ -47,7 +47,7 @@ const relative = computed<Chord>(() =>
     <UCard :ui="{ body: 'flex flex-col gap-3' }">
       <div class="flex items-baseline justify-between gap-2">
         <h3 class="font-mono text-xs text-highlighted">
-          {{ noteName(chord.root, settings.accidentals) }} {{ chord.quality }} scale
+          {{ noteName(chord.root, settings.accidentals, settings.naming) }} {{ chord.quality }} scale
         </h3>
         <button
           type="button"
@@ -87,8 +87,8 @@ const relative = computed<Chord>(() =>
       </ol>
 
       <p class="text-[11px] leading-relaxed text-muted">
-        Degrees {{ TRIAD_DEGREES.join(', ') }} highlighted make {{ chordLabel(chord, settings.accidentals) }}.
-        The same seven notes spell {{ chordLabel(relative, settings.accidentals) }}, its relative
+        Degrees {{ TRIAD_DEGREES.join(', ') }} highlighted make {{ chordLabel(chord, settings.accidentals, settings.naming) }}.
+        The same seven notes spell {{ chordLabel(relative, settings.accidentals, settings.naming) }}, its relative
         {{ relative.quality }}.
       </p>
     </UCard>

@@ -47,8 +47,11 @@ export interface Attempt {
   inv?: InversionName
   /** Set only for ear training. Absent means the chord was named on screen. */
   mode?: 'ear'
-  /** Set only for scale runs. Absent means a triad. */
-  ex?: 'scale'
+  /**
+   * Set only for scale runs and read notes. Absent means a triad. A read note
+   * has no quality, so its `q` is a filler that nothing reads back.
+   */
+  ex?: 'scale' | 'note'
 }
 
 /** One local calendar day of practice. */
@@ -104,7 +107,7 @@ function isAttempt(value: unknown): value is Attempt {
     // they existed readable, which is what keeps the key at v1.
     && (a.inv === undefined || INVERSION_NAMES.includes(a.inv))
     && (a.mode === undefined || a.mode === 'ear')
-    && (a.ex === undefined || a.ex === 'scale')
+    && (a.ex === undefined || a.ex === 'scale' || a.ex === 'note')
 }
 
 function isDayRecord(value: unknown): value is DayRecord {
@@ -148,7 +151,8 @@ export function aggregateByChord(list: Attempt[]): ChordStat[] {
 
   for (const attempt of list) {
     // This is the 24-triad grid. A scale run shares the root and quality but
-    // measures a different skill, so it stays off the board.
+    // measures a different skill, and a read note isn't a chord at all, so
+    // both stay off the board.
     if (attempt.ex !== undefined) continue
     const key = `${attempt.root}:${attempt.q}`
     const row = totals.get(key) ?? { count: 0, correct: 0, ms: 0 }
@@ -222,6 +226,8 @@ export interface AttemptContext {
   ear?: boolean
   /** The prompt was a scale run rather than a chord. */
   scale?: boolean
+  /** The prompt was a single note on a staff. */
+  note?: boolean
 }
 
 /**
@@ -328,7 +334,8 @@ export function useStats() {
       // before these existed looks like, and every reader already handles that.
       ...(context.inversion ? { inv: context.inversion } : {}),
       ...(context.ear ? { mode: 'ear' as const } : {}),
-      ...(context.scale ? { ex: 'scale' as const } : {})
+      ...(context.scale ? { ex: 'scale' as const } : {}),
+      ...(context.note ? { ex: 'note' as const } : {})
     }
 
     attempts.value = [...attempts.value, attempt].slice(-MAX_ATTEMPTS)

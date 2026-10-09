@@ -44,11 +44,11 @@ const families = computed(() =>
       family,
       ...COPY[family],
       roots,
-      rootNames: roots.map(root => noteName(root, settings.value.accidentals)),
+      rootNames: roots.map(root => noteName(root, settings.value.accidentals, settings.value.naming)),
       example: { root: example, quality: props.quality },
       exampleNotes: triad(example, props.quality),
       exampleNames: chordPitchClasses({ root: example, quality: props.quality })
-        .map(pitchClass => noteName(pitchClass, settings.value.accidentals))
+        .map(pitchClass => noteName(pitchClass, settings.value.accidentals, settings.value.naming))
     }
   })
 )
@@ -86,7 +86,7 @@ function play(root: number) {
         <button
           type="button"
           class="cursor-pointer rounded"
-          :aria-label="`Play ${chordLabel(group.example, settings.accidentals)}`"
+          :aria-label="`Play ${chordLabel(group.example, settings.accidentals, settings.naming)}`"
           @click="play(group.example.root)"
         >
           <!-- Exactly one octave, so the root lights once and the shape reads
@@ -106,7 +106,7 @@ function play(root: number) {
         </p>
 
         <p class="font-mono text-[10px] text-dimmed">
-          e.g. {{ chordLabel(group.example, settings.accidentals) }} = {{ group.exampleNames.join(' ') }}
+          e.g. {{ chordLabel(group.example, settings.accidentals, settings.naming) }} = {{ group.exampleNames.join(' ') }}
         </p>
       </UCard>
     </div>

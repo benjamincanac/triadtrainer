@@ -46,7 +46,7 @@ const turnaround = computed(() => Math.floor(props.total / 2))
         'text-bad': phase === 'wrong'
       }"
     >
-      {{ chord ? scaleLabel(chord, settings.accidentals) : '—' }}
+      {{ chord ? scaleLabel(chord, settings.accidentals, settings.naming) : '—' }}
     </p>
 
     <!-- The taller dot marks the turnaround at the octave. -->

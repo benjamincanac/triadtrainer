@@ -12,7 +12,7 @@ const ARPEGGIO_SPACING = 140
 
 const rootItems = computed(() =>
   Array.from({ length: PITCH_CLASS_COUNT }, (_, pitchClass) => ({
-    label: noteName(pitchClass, settings.value.accidentals),
+    label: noteName(pitchClass, settings.value.accidentals, settings.value.naming),
     value: pitchClass
   }))
 )
@@ -25,7 +25,8 @@ const QUALITIES = [
 const LESSONS = [
   { value: 'shapes', label: 'Shapes' },
   { value: 'inversions', label: 'Inversions' },
-  { value: 'scale', label: 'Scale' }
+  { value: 'scale', label: 'Scale' },
+  { value: 'reading', label: 'Reading' }
 ]
 
 const root = ref(0)
@@ -55,8 +56,9 @@ function arpeggiate(notes: number[]) {
     -->
     <UTabs v-model="lesson" :items="LESSONS" :content="false" />
 
-    <!-- A toolbar, not a panel: tighter vertical padding than the card default. -->
-    <UCard :ui="{ body: 'flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 sm:py-2.5' }">
+    <!-- A toolbar, not a panel: tighter vertical padding than the card default.
+         Reading has no chord to configure, so it goes without one. -->
+    <UCard v-if="lesson !== 'reading'" :ui="{ body: 'flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5 sm:py-2.5' }">
       <!-- A field group is deliberately non-wrapping so its segments stay
            joined, and twelve roots are wider than a phone. Scroll the control
            rather than the page. -->
@@ -106,6 +108,7 @@ function arpeggiate(notes: number[]) {
 
     <LessonShapes v-if="lesson === 'shapes'" :quality="quality" @play="arpeggiate" />
     <LessonInversions v-else-if="lesson === 'inversions'" :chord="chord" @play="arpeggiate" />
+    <LessonReading v-else-if="lesson === 'reading'" @play="arpeggiate" />
     <LessonScale v-else :chord="chord" @play="arpeggiate" />
   </div>
 </template>

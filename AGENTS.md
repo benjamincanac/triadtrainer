@@ -32,7 +32,7 @@ export function useSettings() {
 }
 ```
 
-`app/composables/useTheory.ts` is the domain layer and is deliberately free of DOM and Vue imports so it runs in plain node. It is the only module with tests (`test/useTheory.test.ts`). Put new theory logic there as a pure function and test it, rather than inside a component or a Vue composable.
+`app/composables/useTheory.ts` is the domain layer and is deliberately free of DOM and Vue imports so it runs in plain node. Put new theory logic there as a pure function and test it in `test/useTheory.test.ts`, rather than inside a component or a Vue composable. The pure helpers of `useStats.ts` and `useSettings.ts` have their own test files.
 
 Everything compares **sets of pitch classes** (integers 0-11), never raw MIDI note numbers, which is what makes octave, order, inversion and doubling irrelevant by construction. The one exception is inversion handling, which reads the lowest MIDI note before the set collapse.
 
@@ -58,5 +58,8 @@ The migration strategy is **additive optional fields plus a filter-on-read type 
 - `app/pages/index.vue` wraps the board in `<ClientOnly>` because MIDI, Web Audio, localStorage and `performance.now()` have no SSR equivalent. Keep it that way.
 - The on-screen keyboard spans two octaves, C4 to B5 (MIDI 60-83). Voicings above 83 cannot be drawn.
 - Lamps are keyed by **pitch class**, not by note: `PianoKeyboard` calls `lampFor(pitchClass)`, so both octaves of a pitch class always light together. Showing one exact voicing is not possible without reworking that API.
+- The drill has three exercises, triads, scales and notes. Notes writes on a staff through `StaffDiagram`, which the Reading lesson shares. A `StaffNote` is a clef, a diatonic position and an optional sharp or flat, and it is still graded by pitch class.
+- A line of notes stays inside one hand position and writes each staff height one way. That is what gives it a fingering and what keeps it readable without natural signs, so keep both when touching `pickStaffLine` or `staffRun`.
+- `quality`, `order` and `whiteRootsOnly` are kept per tab in `settings.perTab`. The flat fields are the live values for the open tab and `withTab` swaps them on a switch, so change tabs through it rather than by setting `mode` or `exercise` directly.
 - Synth output never feeds back into the played-notes set, so audio playback cannot trigger validation.
 - `useSynth` plays recorded piano samples from `public/piano` (CC BY 3.0, see the NOTICE there) and falls back to a synthesised voice whenever they haven't loaded or can't be fetched. Keep the fallback: the drill has to make a sound offline. Samples are decoded through an `OfflineAudioContext`, which needs no user gesture, so they are ready before the first keypress.
