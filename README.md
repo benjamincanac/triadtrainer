@@ -1,8 +1,9 @@
 # Triad Trainer
 
-A personal drill for major and minor triads on a MIDI keyboard. The app names a chord, you play it,
+A personal drill for a MIDI keyboard. It started with major and minor triads, and now covers their
+scales and reading notes off a staff as well. The app names a chord, a scale or a note, you play it,
 it validates and times you. Reaction time is the metric worth watching, not the score: the goal is
-not working the chord out, it is knowing it immediately.
+not working the answer out, it is knowing it immediately.
 
 **Learn** covers the same 24 chords three ways: the four hand shapes they sort into, the three
 inversions, and the scale each one comes from. A fourth lesson lays out both staves note by note,
@@ -12,6 +13,9 @@ for reading.
 
 **Drill** names a chord and times how long you take to play it. Turn on *Ask for inversions* and the
 prompt names a voicing too, so `C major / 1st inversion` wants E at the bottom.
+
+**Scales** names a major or natural minor scale and you run it up to the octave and back down, one
+note at a time. A wrong note ends the run and the same scale comes back.
 
 **Notes** writes one note on a staff and times how long you take to find its key. Pick the treble
 clef, the bass clef or both in the settings. Each staff runs one ledger line past its outer edge

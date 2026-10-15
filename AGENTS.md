@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Triad Trainer: a Nuxt app that names a chord, you play it on a MIDI keyboard, it validates and times you. See `README.md` for what the app is and the browser constraints around Web MIDI.
+Triad Trainer: a Nuxt app that names a chord, a scale or a note on a staff, you play it on a MIDI keyboard, it validates and times you. See `README.md` for what the app is and the browser constraints around Web MIDI.
 
 ## Commands
 

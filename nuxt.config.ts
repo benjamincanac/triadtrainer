@@ -22,7 +22,7 @@ export default defineNuxtConfig({
         { name: 'color-scheme', content: 'dark' },
         {
           name: 'description',
-          content: 'Drill major and minor triads on a MIDI keyboard. Reaction time, streaks and per-session progress, all client-side.'
+          content: 'Drill triads, scales and note reading on a MIDI keyboard. Reaction time, streaks and per-session progress, all client-side.'
         }
       ],
       link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]
