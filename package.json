@@ -21,7 +21,6 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@nuxt/fonts": "^0.14.0",
     "@nuxt/ui": "^4.13.1",
     "nuxt": "^4.7.0",
     "tailwindcss": "^4.3.5"
